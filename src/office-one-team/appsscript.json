@@ -1,0 +1,18 @@
+{
+  "timeZone": "Europe/Paris",
+  "dependencies": {
+    "libraries": [{
+      "userSymbol": "O1",
+      "libraryId": "11cYXIeGYRSffuDaciFmtd2RL663HFp5A91oNo2g-0JU-naBYjJ8bNPOZ",
+      "version": "18"
+    }, {
+      "userSymbol": "saw",
+      "libraryId": "1CSd9SannDbV8nHJ2Ol_pfNCz3oXnR_fONlerePtVeTw8kr84TSvfxkhH",
+      "version": "36"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "executionApi": {
+    "access": "ANYONE"
+  }
+}
