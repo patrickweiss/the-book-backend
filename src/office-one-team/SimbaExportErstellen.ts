@@ -1,5 +1,6 @@
 function SimbaExportErstellen(rootFolderId: string) {
   var thisSpreadsheet = DriveConnector.getSpreadsheet(rootFolderId, "KontenD", oooVersion);
+  // @ts-ignore
   var a = O1.getAgentForSpreadsheet(thisSpreadsheet, "csvExportAktualisieren");
 
   //  var agent = OfficeOne.createAgent(SpreadsheetApp.getActive());
@@ -10,8 +11,10 @@ function SimbaExportErstellen(rootFolderId: string) {
     kontenSpaltenSetzen(a);
 
     //Alle Buchungen werden gelöscht
+    // @ts-ignore
     a.csvCache = O1.loadTableCache(thisSpreadsheet.getId(), "CSVExport");
     a.csvCache.deleteData();
+    // @ts-ignore
     a.kontenCache = O1.loadTableCache(thisSpreadsheet.getId(), "Konten");
 
     a.kontenHashTableRows = a.kontenCache.createHashTable("Konto");
@@ -31,36 +34,37 @@ function SimbaExportErstellen(rootFolderId: string) {
     negativeBetraegeTransformierenCSV(a);
     kontenStammdatenErgaenzenCSV(a);
 
-    
-//EB Buchungen fuer Simba anpassen
+
+    //EB Buchungen fuer Simba anpassen
     for (var index in a.csvCache.dataArray) {
       var buchungRow = a.csvCache.getRowByIndex(index);
       if (buchungRow.getValue("Datum") < a.geschaeftsjahr) ebBuchungAnpassen(a, buchungRow);
     }
 
     //Buchungen in CSV-Dateien Exportieren
-    
+
     var buchungenCSV = {};
-    for (var index in a.csvCache.dataArray){
-      var csvRow=a.csvCache.getRowByIndex(index);
-      if (csvRow.getValue("Exportgruppe")!=""){
-        if (buchungenCSV[csvRow.getValue("Exportgruppe")]===undefined)buchungenCSV[csvRow.getValue("Exportgruppe")]="Datum;Betrag;Konto (Soll);Gegenkonto (Haben);Buchungstext;Automatiksperre\n";
+    for (var index in a.csvCache.dataArray) {
+      var csvRow = a.csvCache.getRowByIndex(index);
+      if (csvRow.getValue("Exportgruppe") != "") {
+        if (buchungenCSV[csvRow.getValue("Exportgruppe")] === undefined) buchungenCSV[csvRow.getValue("Exportgruppe")] = "Datum;Betrag;Konto (Soll);Gegenkonto (Haben);Buchungstext;Automatiksperre\n";
         var datum = isoDate(csvRow.getValue("Datum"));
-        buchungenCSV[csvRow.getValue("Exportgruppe")]+=
-          datum+";"+
-          formatBetrag(csvRow.getValue("Betrag"))+";"+
-          csvRow.getValue("SKR03 (Soll)")+";"+
-          csvRow.getValue("SKR03 (Haben)")+";"+
-          csvRow.getValue("Buchungstext")+";1\n";
+        buchungenCSV[csvRow.getValue("Exportgruppe")] +=
+          datum + ";" +
+          formatBetrag(csvRow.getValue("Betrag")) + ";" +
+          csvRow.getValue("SKR03 (Soll)") + ";" +
+          csvRow.getValue("SKR03 (Haben)") + ";" +
+          csvRow.getValue("Buchungstext") + ";1\n";
       }
     }
-    
-  for (var exportGruppe in buchungenCSV) {
-    if (buchungenCSV.hasOwnProperty(exportGruppe)) {
-      var exportCSV = buchungenCSV[exportGruppe];
-      DriveApp.getFolderById(a.officeRootId()).createFile(new Date().toISOString()+":"+exportGruppe+".csv", exportCSV, MimeType.CSV );
+
+    for (var exportGruppe in buchungenCSV) {
+      if (buchungenCSV.hasOwnProperty(exportGruppe)) {
+        var exportCSV = buchungenCSV[exportGruppe];
+        // @ts-ignore
+        DriveApp.getFolderById(a.officeRootId()).createFile(new Date().toISOString() + ":" + exportGruppe + ".csv", exportCSV, MimeType.CSV);
+      }
     }
-  }
     a.csvCache.save();
     a.logEnde();
     // saw.logende(logrange);
@@ -73,25 +77,25 @@ function SimbaExportErstellen(rootFolderId: string) {
   return JSON.stringify(result);
 }
 
-function formatBetrag(betrag){
-  return betrag.toFixed(2).toString().replace(".",",");
+function formatBetrag(betrag) {
+  return betrag.toFixed(2).toString().replace(".", ",");
 }
 
 function isoDate(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+  var d = new Date(date),
+    month = '' + (d.getMonth() + 1),
+    day = '' + d.getDate(),
+    year = d.getFullYear();
 
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
+  if (month.length < 2) month = '0' + month;
+  if (day.length < 2) day = '0' + day;
 
-    return [day, month, year].join('.');
+  return [day, month, year].join('.');
 }
 function ebBuchungAnpassen(a, csvRow) {
   csvRow.setValue("Exportgruppe", "EB-Werte");
   csvRow.setValue("Datum", a.geschaeftsjahr);
-  if (parseInt(csvRow.getValue("SKR03 (Soll)")) >= 2000 && parseInt(csvRow.getValue("SKR03 (Soll)"))!==2868) csvRow.setValue("SKR03 (Soll)", 9000);
+  if (parseInt(csvRow.getValue("SKR03 (Soll)")) >= 2000 && parseInt(csvRow.getValue("SKR03 (Soll)")) !== 2868) csvRow.setValue("SKR03 (Soll)", 9000);
   if (parseInt(csvRow.getValue("SKR03 (Haben)")) >= 2000) csvRow.setValue("SKR03 (Haben)", 9000);
   if (parseInt(csvRow.getValue("SKR03 (Soll)")) == 1766) csvRow.setValue("SKR03 (Soll)", 9000);
   if (parseInt(csvRow.getValue("SKR03 (Haben)")) == 1766) csvRow.setValue("SKR03 (Haben)", 9000);
@@ -120,7 +124,9 @@ function kontenSpaltenSetzen(a) {
 }
 function ausgabenCSV(a) {
   var ausgabenID = a.spreadsheet.getRangeByName("AusgabenID").getValue();
+  // @ts-ignore
   a.ausgabenLinkFormula = saw.linkFormula(ausgabenID);
+  // @ts-ignore
   a.ausgabenCache = O1.loadTableCache(ausgabenID, "Ausgaben");
   if (a.ausgabenCache.getRowByIndex(0).getValue("Datum") == "") return;
   a.quelle = a.ausgabenLinkFormula;
@@ -132,14 +138,14 @@ function ausgabenCSV(a) {
     //Ausgabe hinzufügen ----------------------------------------------------------------
     if (ausgabenRow.getValue("netto Betrag") != 0) {
       //Der offene Posten aus der UStVA darf nicht nach Simba exportiert werden:
-      if (!(ausgabenRow.getValue("Konto")==="UStVA" &&  ausgabenRow.getValue("Datum").getFullYear()===a.geschaeftsjahr.getFullYear()-1 )){
-      var neueBuchung = a.csvCache.newRow();
-      neueBuchung.setValue("Datum", ausgabenRow.getValue("Datum"));
+      if (!(ausgabenRow.getValue("Konto") === "UStVA" && ausgabenRow.getValue("Datum").getFullYear() === a.geschaeftsjahr.getFullYear() - 1)) {
+        var neueBuchung = a.csvCache.newRow();
+        neueBuchung.setValue("Datum", ausgabenRow.getValue("Datum"));
 
-      neueBuchung.setValue("Betrag", ausgabenRow.getValue("netto Betrag"));
-      neueBuchung.setValue("Konto (Soll)", ausgabenRow.getValue("Konto"));
-      neueBuchung.setValue("Konto (Haben)", ausgabenRow.getValue("Gegenkonto"));
-      neueBuchung.setValue("Buchungstext", ausgabenRow.getValue("Text"));
+        neueBuchung.setValue("Betrag", ausgabenRow.getValue("netto Betrag"));
+        neueBuchung.setValue("Konto (Soll)", ausgabenRow.getValue("Konto"));
+        neueBuchung.setValue("Konto (Haben)", ausgabenRow.getValue("Gegenkonto"));
+        neueBuchung.setValue("Buchungstext", ausgabenRow.getValue("Text"));
       }
     }
 
@@ -160,9 +166,11 @@ function ausgabenCSV(a) {
 function bewirtungsbelegeCSV(a) {
   var ausgabenID = a.spreadsheet.getRangeByName("AusgabenID").getValue();
   //  a.ausgabenLinkFormula = saw.linkFormula(ausgabenID);
+  // @ts-ignore
   a.bewirtungsbelegeCache = O1.loadTableCache(ausgabenID, "Bewirtungsbelege");
   if (a.bewirtungsbelegeCache.getRowByIndex(0).getValue("Datum") == "") return;
 
+  // @ts-ignore
   a.quelle = saw.linkFormula(ausgabenID);
   for (var index in a.bewirtungsbelegeCache.dataArray) {
 
@@ -204,7 +212,9 @@ function bewirtungsbelegeCSV(a) {
 function verpflegungsmehraufwendungenCSV(a) {
   var ausgabenID = a.spreadsheet.getRangeByName("AusgabenID").getValue();
   // a.ausgabenLinkFormula = saw.linkFormula(ausgabenID);
-  a.verpflegungsmehraufwendungenCache = O1.loadTableCache(ausgabenID, "Verpflegungsmehraufwendungen");
+ // @ts-ignore
+ a.verpflegungsmehraufwendungenCache = O1.loadTableCache(ausgabenID, "Verpflegungsmehraufwendungen");
+  // @ts-ignore
   a.quelle = saw.linkFormula(ausgabenID);
   if (a.verpflegungsmehraufwendungenCache.getRowByIndex(0).getValue("Datum") == "") return;
 
@@ -230,8 +240,10 @@ function verpflegungsmehraufwendungenCSV(a) {
 
 function rechnungenCSV(a) {
   var einnahmenID = a.spreadsheet.getRangeByName("EinnahmenID").getValue();
-  a.einnahmenLinkFormula = saw.linkFormula(einnahmenID);
-  a.rechnungenCache = O1.loadTableCache(einnahmenID, "Rechnungen");
+ // @ts-ignore
+ a.einnahmenLinkFormula = saw.linkFormula(einnahmenID);
+// @ts-ignore
+a.rechnungenCache = O1.loadTableCache(einnahmenID, "Rechnungen");
   if (a.rechnungenCache.getRowByIndex(0).getValue("Datum") == "") return;
 
 
@@ -267,8 +279,10 @@ function rechnungenCSV(a) {
 
 function gutschriftenCSV(a) {
   var einnahmenID = a.spreadsheet.getRangeByName("EinnahmenID").getValue();
-  a.einnahmenLinkFormula = saw.linkFormula(einnahmenID);
-  a.gutschriftenCache = O1.loadTableCache(einnahmenID, "Gutschriften");
+ // @ts-ignore
+ a.einnahmenLinkFormula = saw.linkFormula(einnahmenID);
+// @ts-ignore
+a.gutschriftenCache = O1.loadTableCache(einnahmenID, "Gutschriften");
   if (a.gutschriftenCache.getRowByIndex(0).getValue("Datum") == "") return;
 
 
@@ -305,22 +319,24 @@ function umbuchungenCSV(a) {
   var bankkontenID = a.spreadsheet.getRangeByName("BankkontenID").getValue();
   if (bankkontenID == "") return;
 
-  a.bankkontenLinkFormula = saw.linkFormula(bankkontenID);
-  a.umbuchungenCache = O1.loadTableCache(bankkontenID, "Umbuchungen");
+// @ts-ignore
+a.bankkontenLinkFormula = saw.linkFormula(bankkontenID);
+// @ts-ignore
+a.umbuchungenCache = O1.loadTableCache(bankkontenID, "Umbuchungen");
   if (a.umbuchungenCache.getRowByIndex(0).getValue("Datum") == "") return;
   a.quelle = a.bankkontenLinkFormula;
 
   for (var index in a.umbuchungenCache.dataArray) {
     var buchungRow = a.umbuchungenCache.getRowByIndex(index);
-    let umbId=buchungRow.getValue("ID");
+    let umbId = buchungRow.getValue("ID");
 
     //Umbuchung hinzufügen  
     if (buchungRow.getValue("Betrag") != 0 &&
-    umbId!=="mwstVorsteuerAufMwSt" &&
-    umbId!=="mwstJahresmehrwertsteuerAusVerbindlichkeiten" &&
-    umbId!=="mwstUStVAaufVerbindlichkeiten" &&
-    umbId!=="EBustvaOffenePostenKorrekturVerbindlichkeitenUmsatzsteuer12" &&
-    umbId!=="EBustvaOffenePostenKorrekturUStVa12" 
+      umbId !== "mwstVorsteuerAufMwSt" &&
+      umbId !== "mwstJahresmehrwertsteuerAusVerbindlichkeiten" &&
+      umbId !== "mwstUStVAaufVerbindlichkeiten" &&
+      umbId !== "EBustvaOffenePostenKorrekturVerbindlichkeitenUmsatzsteuer12" &&
+      umbId !== "EBustvaOffenePostenKorrekturUStVa12"
     ) {
       var neueBuchung = a.csvCache.newRow();
       neueBuchung.setValue("Datum", buchungRow.getValue("Datum"));
@@ -340,8 +356,10 @@ function bankbuchungenCSV(a) {
   var bankkontenID = a.spreadsheet.getRangeByName("BankkontenID").getValue();
   if (bankkontenID == "") return;
 
-  a.bankkontenLinkFormula = saw.linkFormula(bankkontenID);
-  a.bankbuchungenCache = O1.loadTableCache(bankkontenID, "Bankbuchungen");
+ // @ts-ignore
+ a.bankkontenLinkFormula = saw.linkFormula(bankkontenID);
+// @ts-ignore
+a.bankbuchungenCache = O1.loadTableCache(bankkontenID, "Bankbuchungen");
   if (a.bankbuchungenCache.getRowByIndex(0).getValue("Datum") == "") return;
 
   a.quelle = a.bankkontenLinkFormula;
@@ -368,8 +386,10 @@ function bankbuchungenCSV(a) {
 
 function abschreibungenCSV(a) {
   var ausgabenID = a.spreadsheet.getRangeByName("AusgabenID").getValue();
-  a.ausgabenLinkFormula = saw.linkFormula(ausgabenID);
-  a.abschreibungenCache = O1.loadTableCache(ausgabenID, "Abschreibungen");
+ // @ts-ignore
+ a.ausgabenLinkFormula = saw.linkFormula(ausgabenID);
+// @ts-ignore
+a.abschreibungenCache = O1.loadTableCache(ausgabenID, "Abschreibungen");
   if (a.abschreibungenCache.getRowByIndex(0).getValue("Datum") == "") return;
   a.quelle = a.ausgabenLinkFormula;
 
@@ -377,7 +397,7 @@ function abschreibungenCSV(a) {
     var buchungRow = a.abschreibungenCache.getRowByIndex(index);
 
     //Abschreibung hinzufügen  
-    if (buchungRow.getValue("Betrag") != 0 && buchungRow.getValue("Datum").getFullYear()!==a.geschaeftsjahr.getFullYear()) {
+    if (buchungRow.getValue("Betrag") != 0 && buchungRow.getValue("Datum").getFullYear() !== a.geschaeftsjahr.getFullYear()) {
       var neueBuchung = a.csvCache.newRow();
       neueBuchung.setValue("Datum", buchungRow.getValue("Datum"));
 
@@ -390,11 +410,11 @@ function abschreibungenCSV(a) {
 }
 function negativeBetraegeTransformierenCSV(a) {
   for (var index in a.csvCache.dataArray) {
-    negativenBetragTranformierenAusCSVExport(a, a.csvCache.getRowByIndex(index));
+    negativenBetragTranformierenAusCSVExport(a.csvCache.getRowByIndex(index));
   }
 }
 
-function negativenBetragTranformierenAusCSVExport(a, csvRow) {
+function negativenBetragTranformierenAusCSVExport(csvRow) {
   if (csvRow.getValue("Betrag") < 0) {
     var altSoll = csvRow.getValue("Konto (Soll)");
     var altHaben = csvRow.getValue("Konto (Haben)");

@@ -1,7 +1,4 @@
-//This Enum is a copy of the WebApp ServerProxy.tsx enum, all these functions have to be implemented
-//202002
-//from the TypeScript GAS Boilerplate
-enum ServerFunction {
+declare enum ServerFunction {
     getOrCreateRootFolder = "getOrCreateRootFolder",
     getOrCreateAusgabenFolder = "getOrCreateAusgabenFolder",
     getNamedRangeData = "getNamedRangeData",
@@ -15,18 +12,17 @@ enum ServerFunction {
     ausgabenFolderScannen = "ausgabenFolderScannen",
     bankbuchungenFolderScannen = "bankbuchungenFolderScannen"
 }
-
-const months = {
-    '01': '(01) Januar',
-    '02': '(02) Februar',
-    '03': '(03) März',
-    '04': '(04) April',
-    '05': '(05) Mai',
-    '06': '(06) Juni',
-    '07': '(07) Juli',
-    '08': '(08) August',
-    '09': '(09) September',
-    '10': '(10) Oktober',
-    '11': '(11) November',
-    '12': '(12) Dezember'
-}
+declare const months: {
+    '01': string;
+    '02': string;
+    '03': string;
+    '04': string;
+    '05': string;
+    '06': string;
+    '07': string;
+    '08': string;
+    '09': string;
+    '10': string;
+    '11': string;
+    '12': string;
+};

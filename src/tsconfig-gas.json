@@ -9,7 +9,7 @@
     "target": "es3",
     "types": ["google-apps-script"],
 
-    "strict": true,
+    "strict": false,
     // "alwaysStrict": true,
     // "noImplicitAny": true,
     // "noImplicitReturns": true,
@@ -29,7 +29,7 @@
     // "preserveConstEnums": true,
     // "removeComments": true,
     // "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     // "suppressExcessPropertyErrors": true,
     // "suppressImplicitAnyIndexErrors": true,
 

@@ -12,7 +12,7 @@ function BuchungenFuerUmsatzsteuerBerechnenUndEintragen(rootFolderId: string){
 
 
 function createUmsatzsteuerArray(anlagenArray: Buchung[]) {
-    var result = [];
+    var result:number[] = [];
     for (let index in anlagenArray) {
       result.push(anlagenArray[index].getBetrag());
     }
