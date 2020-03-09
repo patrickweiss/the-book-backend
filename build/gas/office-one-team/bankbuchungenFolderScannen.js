@@ -71,6 +71,8 @@ function bankbuchungenImportieren(beleg, BM) {
     var transactionArray = datenArray.map(function (element) {
         return new CSVTransaction(element, konto, geschaeftsjahr);
     });
+    if (konto === "Kreditkarte1")
+        transactionArray.reverse();
     Logger.log("erste Transaktion, Betrag:" + transactionArray[0].Betrag + " Datum:" + transactionArray[0].WertstellungsDatum + " Text:" + transactionArray[0].Buchungstext + " Valid:" + transactionArray[0].isValid);
     //Rausfinden bis zu welcher Buchung importiert werden muss. 
     //1. Bedingung: neuer Bankbestand stimmt
@@ -99,7 +101,7 @@ function bankbuchungenImportieren(beleg, BM) {
                 betrag = transaction.Betrag;
                 //Wenn der Bestand nach der vorigen Buchung stimmt und die aktuelle Buchung identisch zur letzten gespeicherten Buchung ist, dann gehe ich davon aus,
                 //dass die aktuelle Buchung und die zuletzt gespeicherte identisch sind
-                Logger.log(index + " Betrag:" + betrag + " Saldendifferenz:" + Math.abs(aktuellerBankbestand - neuerBankbestand));
+                Logger.log(index + "Datum:" + datumNeu + " Betrag:" + betrag + " Saldendifferenz:" + Math.abs(aktuellerBankbestand - neuerBankbestand));
                 Logger.log((Math.abs(aktuellerBankbestand - neuerBankbestand) < 0.0001).toString() + " " +
                     (datumNeu.toString() === new Date(letzteBuchung.getDatum()).toString()) + " " +
                     (betrag === letzteBuchung.getBetrag()).toString() + " " +
@@ -117,8 +119,7 @@ function bankbuchungenImportieren(beleg, BM) {
             transactionArray[transactionArray.length - 2].WertstellungsDatum.getFullYear() < geschaeftsjahr)
             foundFlag = true;
         //bei Kreditkarte zunaechst keine Prüfung auf letzte Buchung
-        if (konto === "Kreditkarte1")
-            foundFlag = true;
+        // if (konto==="Kreditkarte1")foundFlag=true;
         //falls alle Buchungen eingelesen wurden, die letzte Buchung aber nicht identifiziert werden konnte ...
         if (foundFlag === false)
             throw new Error("Die Buchungen der CSV-Datei " + beleg.getName() +

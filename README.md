@@ -16,4 +16,4 @@ Several commands are available as NPM scripts: `npm run <command>`. The most com
 
 ## office.one.team backend components
 
-- none yet ...
+- complete backend migrated :)
