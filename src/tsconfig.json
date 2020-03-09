@@ -1,5 +1,10 @@
 {
   "files": [],
   "include": [],
-  "references": [{ "path": "./GasProject1" }, { "path": "./GasProject2" }, { "path": "./common-components/lib1" }]
+  "references": [
+//    { "path": "./GasProject1" },
+//    { "path": "./GasProject2" },
+//    { "path": "./common-components/lib1" },
+    { "path": "./office-one-team" }
+  ]
 }
