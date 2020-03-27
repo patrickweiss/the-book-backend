@@ -72,7 +72,7 @@ function SimbaExportErstellen(rootFolderId: string) {
     a.logError(e)
   }
   var result = {
-    serverFunction: ServerFunction.BuchungenFuerUmsatzsteuerBerechnenUndEintragen,
+    serverFunction: ServerFunction.SimbaExportErstellen
   }
   return JSON.stringify(result);
 }
