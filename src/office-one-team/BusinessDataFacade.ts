@@ -262,7 +262,7 @@ class KontenTableCache extends TableCache {
 }
 //Abstrakte Fassaden für Buchungssätze
 class FinanzAction extends TableRow {
-  public getBetrag() { return this.getValue("Betrag"); }
+  public getBetrag(): number { return this.getValue("Betrag"); }
   public setBetrag(value: number) { this.setValue("Betrag", value); }
   public getDatum() { return new Date(this.getValue("Datum")); }
   public setDatum(value: any) { this.setValue("Datum", value); }

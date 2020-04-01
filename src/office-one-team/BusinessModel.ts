@@ -37,11 +37,11 @@ class BusinessModel {
     private rootFolderId: string;
     private einnahmenRechnungTableCache: EinnahmenRechnungTableCache;
     private gutschriftenTableCache: GutschriftenTableCache;
-    public ausgabenTableCache: AusgabenTableCache;
-    public bewirtungsbelegeTableCache: BewirtungsbelegeTableCache;
+    private ausgabenTableCache: AusgabenTableCache;
+    private bewirtungsbelegeTableCache: BewirtungsbelegeTableCache;
     private abschreibungenTableCache: AbschreibungenTableCache;
     private vertraegeTableCache: VertraegeTableCache;
-    public bankbuchungenTableCache: BankbuchungenTableCache;
+    private bankbuchungenTableCache: BankbuchungenTableCache;
     private umbuchungenTableCache: UmbuchungenTableCache;
     private kontenTableCache: KontenTableCache;
     //Server specific code
@@ -139,7 +139,7 @@ class BusinessModel {
             bankbuchung.setGegenkonto(beleg.getGegenkonto());
             if (action.belegTyp != BelegTyp.Vertrag && Math.abs(bankbuchung.getBetrag()- beleg.getBetragMitVorzeichen()) > 0.001 ) {
                 const splitBuchung = this.getBankbuchungenTableCache().createNewRow();
-                //Wenn eine eine Zeile im Array erzeugt wird, wird die aktuelle bankbuchung nach unter verschoben
+                //Wenn eine eine Zeile im Array erzeugt wird, wird die aktuelle bankbuchung nach unten verschoben
                 //um weiterhin auf deren Daten zugreifen zu können, muss ein neuer Wrapper erzeugt werden
                 bankbuchung = this.getOrCreateBankbuchung(action.bankbuchungID);
                 splitBuchung.setKonto(beleg.getGegenkonto());
@@ -280,9 +280,6 @@ class BusinessModel {
         simbaIstUmsatzBuchung.setGegenkonto("9313");
         simbaIstUmsatzBuchung.setBezahltAm(this.endOfYear());
         simbaIstUmsatzBuchung.setText("Bezahlter Umsatz im Geschaeftsjahr damit Simba Umsatzsteuerautomatik funktioniert");
-
-
-
     }
     public getUStVAVorjahr(): AusgabenRechnung[] {
         return this.getAusgabenRechnungArray().filter(ausgabe => {

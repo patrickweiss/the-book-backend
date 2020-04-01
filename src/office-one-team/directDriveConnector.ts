@@ -1,6 +1,6 @@
 function getOrCreateOfficeOneFolders(){
   var ooRootFolderIterator = DriveApp.getRootFolder().getFolders();
-  var foldersArray = [];
+  var foldersArray:object[] = [];
   while (ooRootFolderIterator.hasNext()){
     let folder = ooRootFolderIterator.next();
     let folderName = folder.getName();
@@ -17,13 +17,12 @@ function getOrCreateOfficeOneFolders(){
 function getOrCreateRootFolder(ooRootFolderLabel, ooRootFolderVersion) {
   Logger.log("getOrCreateRootFolder aufgerufen");
   var ooRootFolderIterator = DriveApp.getRootFolder().getFoldersByName(ooRootFolderLabel);
-  var ooRootFolder = null;
+  var ooRootFolder:GoogleAppsScript.Drive.Folder | null = null;
   if (ooRootFolderIterator.hasNext()) ooRootFolder = ooRootFolderIterator.next();
   if (ooRootFolder === null) {
     ooRootFolder = DriveApp.createFolder(ooRootFolderLabel);
     ooRootFolder.setDescription("Version " + ooRootFolderVersion);
   }
-  const rootFolderId = ooRootFolder.getId();
  
   var result = {
     serverFunction: ServerFunction.getOrCreateRootFolder,
