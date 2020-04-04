@@ -126,6 +126,7 @@ function OffenePostenAusVorjahrAktualisieren(BMlastYear: BusinessModel, BMnow: B
   //Wenn die letzte UStVA aus dem Vorjahr übernommen wird, weil sie noch nicht bezahlt ist, dann muss der Betrag 
   // von der UStVA wieder abgezogen werden (Bestandskonto mit Anfangesbestand 0)
   // und von den Verbindlichkeiten Umsatzsteuer auch, weil der Betrag dort schon enthalten ist.
+  /* nach Benny import scheint das falsch zu sein ...
   BMnow.getUStVAVorjahr().forEach(ustva => {
     let korrekturUStVA = BMnow.getOrCreateUmbuchung("EBustvaOffenePostenKorrekturUStVa" + (new Date(ustva.getDatum()).getMonth() + 1));
     korrekturUStVA.setDatum(BMlastYear.endOfYear());
@@ -142,8 +143,9 @@ function OffenePostenAusVorjahrAktualisieren(BMlastYear: BusinessModel, BMnow: B
     korrekturVerbindlichkeitenUmsatzsteuer.setGegenkonto("Verbindlichkeiten Umsatzsteuer");
     korrekturVerbindlichkeitenUmsatzsteuer.setBezahltAm(BMlastYear.endOfYear());
     korrekturVerbindlichkeitenUmsatzsteuer.setText("Korrektur des Bestandsfehlers durch offenen UStVA Posten")
-  })
+  })*/
 }
+
 
 function AnfangsbestaendeVonKontenGruppeBestandAktualisieren(BMlastYear: BusinessModel, BMnow: BusinessModel) {
   BMlastYear.getBestandskontenArray().forEach(bestandsKonto => {
