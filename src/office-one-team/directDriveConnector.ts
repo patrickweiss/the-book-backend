@@ -12,6 +12,7 @@ function getOrCreateOfficeOneFolders(){
     serverFunction: ServerFunction.getOrCreateOfficeOneFolders,
     foldersArray:foldersArray
   }
+  Logger.log(JSON.stringify(result));
   return JSON.stringify(result);
 }
 function getOrCreateRootFolder(ooRootFolderLabel, ooRootFolderVersion) {

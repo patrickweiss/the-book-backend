@@ -26,7 +26,8 @@
     "push-project1": "cd src/GasProject1 && clasp push",
     "push-project2": "cd src/GasProject2 && clasp push",
     "push-all": "npm run config-all && npm run push-project1 && npm run push-project2",
-    "push-office-one": "tsc --build src && npm run config-office-one && cd src/office-one-team && clasp push"
+    "push-office-one": "tsc --build src && npm run config-office-one && cd src/office-one-team && clasp push",
+    "commerzbank-backdoor-account-consistency" : "tsc --build src && npm run config-office-one && cd src/office-one-team && clasp push"
   },
   "repository": "https://github.com/PopGoesTheWza/ts-gas-project-starter.git",
   "devDependencies": {
@@ -39,5 +40,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "clasp": "^1.0.0"
   }
 }

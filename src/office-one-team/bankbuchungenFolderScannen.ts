@@ -1,7 +1,7 @@
 function bankbuchungenFolderScannen(rootFolderId: string, month: string) {
     Logger.log("bankbuchungenFolderScannen,rootFolderID:" + rootFolderId + " monat:" + month);
     let BM = new BusinessModel(rootFolderId);
- 
+
     var rootFolder = DriveApp.getFolderById(rootFolderId);
     var bankkontenFolder = getOrCreateFolder(rootFolder, "3 Bankkonten");
     var monthFolder = getOrCreateFolder(bankkontenFolder, months[month]);
@@ -15,7 +15,7 @@ function bankbuchungenFolderScannen(rootFolderId: string, month: string) {
         if (belegDaten[0] !== "✔") {
             let konto = belegDaten[0];
             if (konto === "Bank1" || konto === "Bank2" || konto === "Kreditkarte1") {
-                vorgemerkteBuchungen[beleg.getName()] = bankbuchungenImportieren(beleg, BM);
+                vorgemerkteBuchungen[beleg.getName()] = bankbuchungenImportieren(beleg, BM, monthFolder);
             } else vorgemerkteBuchungen[beleg.getName()] = gehaltsbuchungenImportieren(beleg, BM);
         }
     }
@@ -30,8 +30,8 @@ function bankbuchungenFolderScannen(rootFolderId: string, month: string) {
 }
 
 function gehaltsbuchungenImportieren(beleg, BM: BusinessModel) {
-   // let belegDaten = beleg.getName().split("_");
-   // let konto = belegDaten[0];
+    // let belegDaten = beleg.getName().split("_");
+    // let konto = belegDaten[0];
     let datenString = beleg.getBlob().getDataAsString("ISO-8859-1");
     // @ts-ignore
     let buchungenArray = O1.CSVToArray(datenString, ";");
@@ -58,7 +58,7 @@ function gehaltsbuchungenImportieren(beleg, BM: BusinessModel) {
     return "Gehaltsbuchungen";
 }
 
-function bankbuchungenImportieren(beleg, BM: BusinessModel) {
+function bankbuchungenImportieren(beleg: GoogleAppsScript.Drive.File, BM: BusinessModel, monthFolder: GoogleAppsScript.Drive.Folder) {
     let geschaeftsjahr = BM.endOfYear().getFullYear();
     let belegDaten = beleg.getName().split("_");
     if (belegDaten[0] === "✔") return;
@@ -71,10 +71,24 @@ function bankbuchungenImportieren(beleg, BM: BusinessModel) {
     Logger.log("alter Bankbestand:" + alterBankbestand);
     // @ts-ignore
     var datenArray = O1.CSVToArray(datenString, ";");
-    let transactionArray:CSVTransaction[] = datenArray.map(element => {
+    removeUncompleteRowOf2dArray(datenArray);
+    let importDataFolder = monthFolder.createFolder(beleg.getName());
+    saveDataArray(`Originaldaten: ${beleg.getName()}`, datenArray, importDataFolder);
+    let transactionArray: CSVTransaction[] = datenArray.map(element => {
         return new CSVTransaction(element, konto, geschaeftsjahr);
     })
-    if (konto === "Kreditkarte1")transactionArray.reverse();
+    if (konto === "Kreditkarte1") transactionArray.reverse();
+    let transaction2dArray:any[][] = transactionArray.map(transaction => {
+        return [
+            transaction.WertstellungsDatum,
+            transaction.datumString,
+            transaction.Buchungstext,
+            transaction.Betrag,
+            transaction.isPlanned,
+            transaction.isValid
+        ]
+    })
+    saveDataArray( `Transaktionsdaten: ${beleg.getName()}`, transaction2dArray, importDataFolder);
     Logger.log(`erste Transaktion, Betrag:${transactionArray[0].Betrag} Datum:${transactionArray[0].WertstellungsDatum} Text:${transactionArray[0].Buchungstext} Valid:${transactionArray[0].isValid}`);
     //Rausfinden bis zu welcher Buchung importiert werden muss. 
     //1. Bedingung: neuer Bankbestand stimmt
@@ -84,10 +98,10 @@ function bankbuchungenImportieren(beleg, BM: BusinessModel) {
 
     let letzteBuchung = BM.getBankbuchungLatest(konto);
     //durch das Array iterieren:
-    let index:string ="" ;
+    let index: string = "";
     let vorgemerkteBuchungen = 0;
     if (letzteBuchung !== undefined) {
-     Logger.log("letzte Buchung Id:"+letzteBuchung.getId());
+        Logger.log("letzte Buchung Id:" + letzteBuchung.getId());
         let foundFlag = false;
         for (index in transactionArray) {
             let transaction: CSVTransaction = transactionArray[index];
@@ -121,18 +135,18 @@ function bankbuchungenImportieren(beleg, BM: BusinessModel) {
         }
         //Wenn die erste Buchung aus dem Vorjahr ist, dann kann die letzte importierte Buchung nicht gefunden werden (ist im aktuellen Jahr nicht vorhanden)
         //Wenn der der Betrag stimmt, ist trotzdem alles ok
-        if ((Math.abs(aktuellerBankbestand - neuerBankbestand) < 0.0001) && 
-        transactionArray[transactionArray.length-2].WertstellungsDatum.getFullYear()<geschaeftsjahr )foundFlag=true;
+        if ((Math.abs(aktuellerBankbestand - neuerBankbestand) < 0.0001) &&
+            transactionArray[transactionArray.length - 2].WertstellungsDatum.getFullYear() < geschaeftsjahr) foundFlag = true;
         //bei Kreditkarte zunaechst keine Prüfung auf letzte Buchung
-       // if (konto==="Kreditkarte1")foundFlag=true;
+        // if (konto==="Kreditkarte1")foundFlag=true;
 
         //falls alle Buchungen eingelesen wurden, die letzte Buchung aber nicht identifiziert werden konnte ...
         if (foundFlag === false) throw new Error(
-            "Die Buchungen der CSV-Datei " + beleg.getName() + 
-            "führen nicht zum Endbestand von " + neuerBankbestand + 
-            "sondern: "+ aktuellerBankbestand+
-            "Datum erste Banktransaktion" + transactionArray[transactionArray.length-2].datumString +
-            "Geschäftsjahr"+geschaeftsjahr );
+            "Die Buchungen der CSV-Datei " + beleg.getName() +
+            "führen nicht zum Endbestand von " + neuerBankbestand +
+            "sondern: " + aktuellerBankbestand +
+            "Datum erste Banktransaktion" + transactionArray[transactionArray.length - 2].datumString +
+            "Geschäftsjahr" + geschaeftsjahr);
     } else {
         //Dieses Konto wurde noch nie importiert
         //Die erste Buchung erfolgt daher mit dem aus dem Endbestand berechneten Anfangsbestand
@@ -187,7 +201,7 @@ class CSVTransaction {
     public Buchungstext: string;
     public isValid: boolean;
     public isPlanned: boolean;
-    public datumString:string;
+    public datumString: string;
 
     constructor(element, konto, geschaeftsjahr) {
         let datumString = "";
@@ -200,7 +214,7 @@ class CSVTransaction {
                 this.Buchungstext = element[3];
             }
         } else {
-            Logger.log(element[0]+" "+element[5]);
+            Logger.log(element[0] + " " + element[5]);
             this.isValid = (element[1] != "" && element[1] != "Kaufdatum" && element[1] != undefined && element[5] != undefined);
             this.isPlanned = false;
             if (this.isValid) {
@@ -214,9 +228,9 @@ class CSVTransaction {
         this.datumString = datumString;
         this.WertstellungsDatum = new Date(parseInt(datum[2], 10), parseInt(datum[1], 10) - 1, parseInt(datum[0], 10));
         //prüfen, ob Transaktion im aktuellen Geschäftsjahr ist
-        if (geschaeftsjahr!==this.WertstellungsDatum.getFullYear()){
-            this.isValid=false;
-            this.isPlanned=false;
+        if (geschaeftsjahr !== this.WertstellungsDatum.getFullYear()) {
+            this.isValid = false;
+            this.isPlanned = false;
         }
     }
 }

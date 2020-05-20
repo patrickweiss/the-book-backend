@@ -1,6 +1,7 @@
 //This Enum is a copy of the WebApp ServerProxy.tsx enum, all these functions have to be implemented
 //202002
 //from the TypeScript GAS Boilerplate
+//Client Version 0046.03
 enum ServerFunction {
     getOrCreateRootFolder = "getOrCreateRootFolder",
     getOrCreateAusgabenFolder = "getOrCreateAusgabenFolder",

@@ -44,7 +44,8 @@ class DriveConnector {
   }
   static getNamedRangeData(rootFolderId: string, rangeName: string, vers: string, ): [Object[][], string[][], string[][]] {
     let defaultVersion = "0042";
-    Logger.log(rootFolderId + " " + rangeName + " " + vers);
+    Logger.log("getNamedRangeData("+ rootFolderId + "," + rangeName + "," + vers +")");
+    Logger.log(`getNamedRangeData(${rootFolderId},${rangeName},${vers}`)
     if (vers !== undefined) defaultVersion = vers;
 
     var spreadsheet = this.getSpreadsheet(rootFolderId, rangeName, defaultVersion);
