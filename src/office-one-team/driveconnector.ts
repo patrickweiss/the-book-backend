@@ -7,6 +7,23 @@ class DriveConnector {
   static rangeValues = {};
 
   static oooVersions = {
+    "0047": {
+      AusgabenD: "2 Ausgaben erfassen - Version:0047",
+      AusgabenDatei: "2 Ausgaben erfassen - Version:0047",
+      BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0047",
+      AbschreibungenD: "2 Ausgaben erfassen - Version:0047",
+      "VerträgeD": "2 Ausgaben erfassen - Version:0047",
+      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0047",
+      KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0047",
+      BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0047",
+      UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0047",
+      RechnungenD: "1 Rechnung schreiben - Version:0047",
+      GutschriftenD: "1 Rechnung schreiben - Version:0047",
+      "1 Rechnung schreiben - Version:0047": "1P_gm80odihMrEdXauVXSQ2FiYQa7v5SIQcz1Kz5h-wc",
+      "2 Ausgaben erfassen - Version:0047": "1l5QiPqb6QJP2s947i0I2gb8AqAi2Zj9D_y2tipzkrxg",
+      "3 Bankbuchungen zuordnen - Version:0047": "1P2fRe6is5uiCzKABCTHHduvsbHw3bpBXEiiwA8DOIPI",
+      "4 Bilanz, Gewinn und Steuererklärungen - Version:0047": "1-VrScDm-zkvvSrhBSlDiri0a2gX6-B4zHO_DISOsotY"
+    },
     "0046": {
       AusgabenD: "2 Ausgaben erfassen - Version:0046",
       AusgabenDatei: "2 Ausgaben erfassen - Version:0046",
