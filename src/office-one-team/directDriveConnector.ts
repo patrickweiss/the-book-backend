@@ -1,16 +1,28 @@
-function getOrCreateOfficeOneFolders(){
+function getOrCreateOfficeOneFolders() {
   var ooRootFolderIterator = DriveApp.getRootFolder().getFolders();
-  var foldersArray:object[] = [];
-  while (ooRootFolderIterator.hasNext()){
+  var foldersArray: object[] = [];
+  while (ooRootFolderIterator.hasNext()) {
     let folder = ooRootFolderIterator.next();
     let folderName = folder.getName();
-    if (folderName.toString().indexOf(".Office")!==-1){
-      foldersArray.push({id:folder.getId(),name:folderName});
+    if (folderName.toString().indexOf(".Office") !== -1) {
+      foldersArray.push({ id: folder.getId(), name: folderName });
     }
   }
+  //add shared Offices
+  var shortcutIterator = DriveApp.getRootFolder().getFilesByType("application/vnd.google-apps.shortcut");
+  var shortcutArray: object[] = [];
+  while (shortcutIterator.hasNext()) {
+    let sharedOffice = shortcutIterator.next();
+    if (sharedOffice.getName().toString().indexOf(".Office") !== -1) {
+      let folder = DriveApp.getFoldersByName(sharedOffice.getName()).next();
+      foldersArray.push({ id: folder.getId(), name: folder.getName() });
+    }
+  }
+
   var result = {
     serverFunction: ServerFunction.getOrCreateOfficeOneFolders,
-    foldersArray:foldersArray
+    foldersArray: foldersArray,
+    shortcutArray: shortcutArray
   }
   Logger.log(JSON.stringify(result));
   return JSON.stringify(result);
@@ -18,13 +30,13 @@ function getOrCreateOfficeOneFolders(){
 function getOrCreateRootFolder(ooRootFolderLabel, ooRootFolderVersion) {
   Logger.log("getOrCreateRootFolder aufgerufen");
   var ooRootFolderIterator = DriveApp.getRootFolder().getFoldersByName(ooRootFolderLabel);
-  var ooRootFolder:GoogleAppsScript.Drive.Folder | null = null;
+  var ooRootFolder: GoogleAppsScript.Drive.Folder | null = null;
   if (ooRootFolderIterator.hasNext()) ooRootFolder = ooRootFolderIterator.next();
   if (ooRootFolder === null) {
     ooRootFolder = DriveApp.createFolder(ooRootFolderLabel);
     ooRootFolder.setDescription("Version " + ooRootFolderVersion);
   }
- 
+
   var result = {
     serverFunction: ServerFunction.getOrCreateRootFolder,
     id: ooRootFolder.getId(),

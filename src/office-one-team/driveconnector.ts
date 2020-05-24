@@ -1,4 +1,4 @@
-const oooVersion = "0046";
+const oooVersion = "0047";
 
 class DriveConnector {
 
