@@ -1,4 +1,4 @@
-const oooVersion = "0047";
+const oooVersion = "0048";
 
 class DriveConnector {
 
@@ -7,6 +7,23 @@ class DriveConnector {
   static rangeValues = {};
 
   static oooVersions = {
+    "0048": {
+      AusgabenD: "2 Ausgaben erfassen - Version:0047",
+      AusgabenDatei: "2 Ausgaben erfassen - Version:0047",
+      BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0047",
+      AbschreibungenD: "2 Ausgaben erfassen - Version:0047",
+      "VerträgeD": "2 Ausgaben erfassen - Version:0047",
+      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0047",
+      KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0047",
+      BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0047",
+      UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0047",
+      RechnungenD: "1 Rechnung schreiben - Version:0047",
+      GutschriftenD: "1 Rechnung schreiben - Version:0047",
+      "1 Rechnung schreiben - Version:0048": "1kDKlLNRvLO-hqyDQJ5dH6hTeTZAJUf4CGm8lGjqYcSU",
+      "2 Ausgaben erfassen - Version:0048": "1cYrE2SzBYkClTx46bxffU12YTaFx2AavpCeL1p043Gw",
+      "3 Bankbuchungen zuordnen - Version:0048": "1MYGEtZs-oopbdcMACx3zHm0jDaNOz30zM5erEcICuos",
+      "4 Bilanz, Gewinn und Steuererklärungen - Version:0048": "1IInIyrbQY6jK4HG7w0VoWoX4neP5sE1hKW4s-M7CKLg"
+    },
     "0047": {
       AusgabenD: "2 Ausgaben erfassen - Version:0047",
       AusgabenDatei: "2 Ausgaben erfassen - Version:0047",
@@ -40,32 +57,12 @@ class DriveConnector {
       "2 Ausgaben erfassen - Version:0046": "1a7oidzIl1hyBI7N6V7qImhEFH3T_U4gwFT3NZTOB_Fs",
       "3 Bankbuchungen zuordnen - Version:0046": "1Ahkhu-xkt8ooEydyBWRQSVAuTrIOmZEgr0Hi6boj6IA",
       "4 Bilanz, Gewinn und Steuererklärungen - Version:0046": "1nRModEjyPacjUY34P5VgcrO28z_WQS8KTg_f6UwMf0M"
-    },
-    "0045": {
-      AusgabenD: "2 Ausgaben erfassen - Version:0045",
-      AusgabenDatei: "2 Ausgaben erfassen - Version:0045",
-      BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0045",
-      AbschreibungenD: "2 Ausgaben erfassen - Version:0045",
-      "VerträgeD": "2 Ausgaben erfassen - Version:0045",
-      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0045",
-      KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0045",
-      BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0045",
-      UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0045",
-      RechnungenD: "1 Rechnung schreiben - Version:0045",
-      GutschriftenD: "1 Rechnung schreiben - Version:0045",
-      "1 Rechnung schreiben - Version:0045": "1aL3sLrI648cPHNZgKZfh4GQfY833db00EqVdDR9aeMw",
-      "2 Ausgaben erfassen - Version:0045": "1UfWjg956Y9k26pwGxZJNJL7JeZb5rlPjskKVv_7d4rs",
-      "3 Bankbuchungen zuordnen - Version:0045": "1pc5j_bYMvAYfo_fTO1OUyHzGCt7Zj4iFvgla1k1X688",
-      "4 Bilanz, Gewinn und Steuererklärungen - Version:0045": "1VwAYJqmQZDyvAFriUHa9iIe8ff6TcvuJd-XHwyOdRTc"
     }
   }
-  static getNamedRangeData(rootFolderId: string, rangeName: string, vers: string, ): [Object[][], string[][], string[][]] {
-    let defaultVersion = "0042";
-    Logger.log("getNamedRangeData("+ rootFolderId + "," + rangeName + "," + vers +")");
-    Logger.log(`getNamedRangeData(${rootFolderId},${rangeName},${vers}`)
-    if (vers !== undefined) defaultVersion = vers;
+  static getNamedRangeData(rootFolderId: string, rangeName: string, version: string ): [Object[][], string[][], string[][]] {
+    Logger.log(`getNamedRangeData(${rootFolderId},${rangeName},${version}`)
 
-    var spreadsheet = this.getSpreadsheet(rootFolderId, rangeName, defaultVersion);
+    var spreadsheet = this.getSpreadsheet(rootFolderId, rangeName, version);
     return [spreadsheet.getRangeByName(rangeName).getValues(),
     spreadsheet.getRangeByName(rangeName).getBackgrounds(),
     spreadsheet.getRangeByName(rangeName).getFormulasR1C1()];
@@ -80,11 +77,9 @@ class DriveConnector {
     return DriveConnector.oooVersions[version][DriveConnector.oooVersions[version][rangeName]];
   }
   static getValueByName(rootFolderId: string, rangeName: string, version: string) {
-    let defaultVersion = "0042";
-    if (version !== undefined) defaultVersion = version;
     let value = this.rangeValues[rootFolderId + rangeName];
     if (value === undefined) {
-      value = this.getSpreadsheet(rootFolderId, rangeName, defaultVersion).getRangeByName(rangeName).getValue();
+      value = this.getSpreadsheet(rootFolderId, rangeName, version).getRangeByName(rangeName).getValue();
       this.rangeValues[rootFolderId + rangeName] = value;
     }
     return value;
@@ -158,7 +153,7 @@ class DriveConnector {
 
 function generateAndMailTableRow() {
   let namedRange = "RechnungenD";
-  let columnArray = DriveConnector.getNamedRangeData("1_qZ45ZztZAt1BfAgqIEEXglwIjmnAtp7", namedRange, "0043")[0][0];
+  let columnArray = DriveConnector.getNamedRangeData("1_qZ45ZztZAt1BfAgqIEEXglwIjmnAtp7", namedRange, oooVersion)[0][0];
   let getterAndSetter = "";
   columnArray.forEach(column => {
     let camelColumn = column.toString().replace(/ /g, "").replace(/-/g, "");

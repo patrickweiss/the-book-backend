@@ -2,20 +2,6 @@ function ausgabenFolderScannen(rootFolderId: string, month: string) {
     Logger.log("ausgabenFolderScannen,rootFolderID:" + rootFolderId + " monat:" + month);
     let BM = new BusinessModel(rootFolderId);
     let geschaeftsjahr = BM.endOfYear().getFullYear();
-    let ausgabenFolderNames = {
-        '01': '(01) Januar',
-        '02': '(02) Februar',
-        '03': '(03) März',
-        '04': '(04) April',
-        '05': '(05) Mai',
-        '06': '(06) Juni',
-        '07': '(07) Juli',
-        '08': '(08) August',
-        '09': '(09) September',
-        '10': '(10) Oktober',
-        '11': '(11) November',
-        '12': '(12) Dezember'
-    }
     var datumZuOrdner = {
         "01": new Date(geschaeftsjahr, 0, 1),
         "02": new Date(geschaeftsjahr, 1, 1),
@@ -32,7 +18,7 @@ function ausgabenFolderScannen(rootFolderId: string, month: string) {
     }
     var rootFolder = DriveApp.getFolderById(rootFolderId);
     var ausgabenFolder = getOrCreateFolder(rootFolder, "2 Ausgaben");
-    var monatsOrdner = getOrCreateFolder(ausgabenFolder, ausgabenFolderNames[month]);
+    var monatsOrdner = getOrCreateFolder(ausgabenFolder, monatsFolderNames[month]);
     var belegIterator = monatsOrdner.getFiles();
     while (belegIterator.hasNext()) {
         var beleg = belegIterator.next();
@@ -192,6 +178,8 @@ function neueAusgabeEintragen(beleg, belegWoerter, datum, BM: BusinessModel) {
         Logger.log("Index 19%" + belegName.indexOf("19%"));
         if (belegName.indexOf("19%") != -1) prozent = "19%";
         if (belegName.indexOf("7%") != -1) prozent = "7%";
+        if (belegName.indexOf("16%") != -1) prozent = "16%";
+        if (belegName.indexOf("5%") != -1) prozent = "5%";
         Logger.log("Prozent:" + prozent);
 
         neueAusgabeRow.setNettoBetrag(netto(neueAusgabeRow.getValue("brutto Betrag"), prozent));
@@ -217,13 +205,15 @@ function neueAusgabeEintragen(beleg, belegWoerter, datum, BM: BusinessModel) {
     }
 }
 
-function netto(brutto, prozent) {
+function netto(brutto:number, prozent:string) {
     if (prozent == "19%") return Math.round(brutto / 1.19 * 100) / 100;
     if (prozent == "7%") return Math.round(brutto / 1.07 * 100) / 100;
+    if (prozent == "16%") return Math.round(brutto / 1.16 * 100) / 100;
+    if (prozent == "5%") return Math.round(brutto / 1.05 * 100) / 100;
     if (prozent == "0%") return brutto;
     return brutto;
 }
-function vorsteuer(brutto, prozent) {
+function vorsteuer(brutto:number, prozent:string) {
     return brutto - netto(brutto, prozent);
 }
 

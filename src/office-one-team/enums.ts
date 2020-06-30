@@ -13,6 +13,7 @@ enum ServerFunction {
     getOrCreateOfficeOneFolders = "getOrCreateOfficeOneFolders",
     SimbaExportErstellen = "SimbaExportErstellen",
     getOrCreateGutschriftenFolder = "getOrCreateGutschriftenFolder",
+    gutschriftenFolderScannen ="gutschriftenFolderScannen",
     ausgabenFolderScannen = "ausgabenFolderScannen",
     bankbuchungenFolderScannen = "bankbuchungenFolderScannen"
 }

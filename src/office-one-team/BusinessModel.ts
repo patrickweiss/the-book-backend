@@ -256,7 +256,7 @@ class BusinessModel {
         mwstAufVerbindlichkeiten.setBezahltAm(this.endOfYear());
         mwstAufVerbindlichkeiten.setText("Jahresmehrwertsteuer auf Verbindlichkeiten Umsatzsteuer buchen");
 
-        //UStVA auf Verbindlichekeiten Umsatzsteuer buchen
+        //UStVA auf Verbindlichkeiten Umsatzsteuer buchen
         let ustva = 0;
         this.getAusgabenRechnungArray().forEach(ausgabe => {
             if (
