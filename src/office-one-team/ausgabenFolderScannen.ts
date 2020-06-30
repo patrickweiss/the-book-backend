@@ -77,7 +77,7 @@ function wennBelegNeuIstEintragen(beleg, datum, BM: BusinessModel) {
     return;
 }
 
-function updateNameFromDataAndTemplate(ausgabeRow:Buchung, template:string) {
+function updateNameFromDataAndTemplate(ausgabeRow: Buchung, template: string) {
 
     var columnArray = template.split("_");
     var dateiName = "✔_";
@@ -95,7 +95,7 @@ function updateNameFromDataAndTemplate(ausgabeRow:Buchung, template:string) {
     if (alterName !== dateiName) {
         var datei = DriveApp.getFileById(ausgabeRow.getValue("ID"));
         datei.setName(dateiName);
-        ausgabeRow.createLink(ausgabeRow.getValue("ID"),dateiName);
+        ausgabeRow.createLink(ausgabeRow.getValue("ID"), dateiName);
         var datum = new Date();
         datei.setDescription(datei.getDescription() + " " + datum.getFullYear() + "." + (datum.getMonth() + 1) + "." + datum.getDay() + ":" + alterName);
     }
@@ -127,7 +127,15 @@ function neuenBewirtungsbelegEintragen(beleg, belegWoerter, monat, BM: BusinessM
         neuerBewirtungsbelegRow.setKonto(konto);
         neuerBewirtungsbelegRow.setGegenkonto('bar');
         neuerBewirtungsbelegRow.setText(beleg.getName());
-        neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.19));
+        //Corona Mehrtwertsteuer
+        if (monat > new Date(2020, 5, 30) && monat < new Date(2021, 0, 1))
+            neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.05));
+        else {
+            if (monat > new Date(2020, 11, 31) && monat < new Date(2021, 6, 1))
+                neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.07));
+            else
+                neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.19));
+        }
         neuerBewirtungsbelegRow.setMehrwertsteuer(neuerBewirtungsbelegRow.getValue("brutto Betrag") - neuerBewirtungsbelegRow.getValue("netto Betrag"));
         neuerBewirtungsbelegRow.setAbziehbareBewirtungskosten(round2Fixed(neuerBewirtungsbelegRow.getValue("netto Betrag") * 0.7));
         neuerBewirtungsbelegRow.setNichtAbziehbareBewirtungskosten(neuerBewirtungsbelegRow.getValue("netto Betrag") - neuerBewirtungsbelegRow.getValue("abziehbare Bewirtungskosten"));
@@ -192,8 +200,8 @@ function neueAusgabeEintragen(beleg, belegWoerter, datum, BM: BusinessModel) {
         if (belegName.indexOf("bar") != -1 || belegName.indexOf("Bar") != -1) gegenkonto = "bar";
         if (belegName.indexOf("auf Rechnung") != -1 || belegName.indexOf("Auf Rechnung") != -1) { gegenkonto = "auf Rechnung"; bezahltAm = ""; }
         if (belegName.indexOf("mit Karte") != -1 || belegName.indexOf("Mit Karte") != -1) { gegenkonto = "mit Karte"; bezahltAm = ""; }
-        if (belegName.indexOf("Verbindlichkeiten Umsatzsteuer") != -1 ) { gegenkonto = "Verbindlichkeiten Umsatzsteuer"; bezahltAm = ""; }
-        
+        if (belegName.indexOf("Verbindlichkeiten Umsatzsteuer") != -1) { gegenkonto = "Verbindlichkeiten Umsatzsteuer"; bezahltAm = ""; }
+
 
         neueAusgabeRow.setBezahltAm(bezahltAm);
 
@@ -201,11 +209,11 @@ function neueAusgabeEintragen(beleg, belegWoerter, datum, BM: BusinessModel) {
         var ausgabeText = beleg.getName();
 
         neueAusgabeRow.setText(ausgabeText);
-        updateNameFromDataAndTemplate(neueAusgabeRow,DriveConnector.getValueByName(BM.getRootFolderId(),"AusgabenDatei",oooVersion));
+        updateNameFromDataAndTemplate(neueAusgabeRow, DriveConnector.getValueByName(BM.getRootFolderId(), "AusgabenDatei", oooVersion));
     }
 }
 
-function netto(brutto:number, prozent:string) {
+function netto(brutto: number, prozent: string) {
     if (prozent == "19%") return Math.round(brutto / 1.19 * 100) / 100;
     if (prozent == "7%") return Math.round(brutto / 1.07 * 100) / 100;
     if (prozent == "16%") return Math.round(brutto / 1.16 * 100) / 100;
@@ -213,7 +221,7 @@ function netto(brutto:number, prozent:string) {
     if (prozent == "0%") return brutto;
     return brutto;
 }
-function vorsteuer(brutto:number, prozent:string) {
+function vorsteuer(brutto: number, prozent: string) {
     return brutto - netto(brutto, prozent);
 }
 
