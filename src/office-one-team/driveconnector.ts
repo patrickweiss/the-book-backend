@@ -19,6 +19,7 @@ class DriveConnector {
       UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0048",
       RechnungenD: "1 Rechnung schreiben - Version:0048",
       GutschriftenD: "1 Rechnung schreiben - Version:0048",
+      GutschriftenDatei:  "1 Rechnung schreiben - Version:0048",
       "1 Rechnung schreiben - Version:0048": "1kDKlLNRvLO-hqyDQJ5dH6hTeTZAJUf4CGm8lGjqYcSU",
       "2 Ausgaben erfassen - Version:0048": "1cYrE2SzBYkClTx46bxffU12YTaFx2AavpCeL1p043Gw",
       "3 Bankbuchungen zuordnen - Version:0048": "1MYGEtZs-oopbdcMACx3zHm0jDaNOz30zM5erEcICuos",

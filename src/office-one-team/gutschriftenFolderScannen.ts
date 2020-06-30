@@ -29,9 +29,8 @@ function gutschriftenFolderScannen(rootFolderId: string, month: string) {
 
     BM.save();
     var result = {
-        serverFunction: ServerFunction.ausgabenFolderScannen,
-        AusgabenD: BM.getAusgabenTableCache().getData(),
-        BewirtungsbelegeD: BM.getBewirtungsbelegeTableCache().getData()
+        serverFunction: ServerFunction.gutschriftenFolderScannen,
+        GutschriftenD: BM.getGutschriftenTableCache().getData()
     }
     return JSON.stringify(result);
 
@@ -40,8 +39,8 @@ function gutschriftenFolderScannen(rootFolderId: string, month: string) {
 function wennGutschriftNeuIstEintragen(beleg, datum, BM: BusinessModel) {
     Logger.log("belegID" + beleg.getId);
     //Ist Beleg schon in Gutschriftentabelle eingetragen?
-    var ausgabeDaten = BM.getAusgabenTableCache().getOrCreateHashTable("ID")[beleg.getId()];
-    if (ausgabeDaten != null) {
+    var gutschriftInTabellenDaten = BM.getGutschriftenTableCache().getOrCreateHashTable("ID")[beleg.getId()];
+    if (gutschriftInTabellenDaten != null) {
         return;
     }
 
@@ -83,26 +82,12 @@ function neueGutschriftEintragen(beleg, belegWoerter, datum, BM: BusinessModel) 
         if (belegName.indexOf("5%") != -1) prozent = "5%";
         Logger.log("Prozent:" + prozent);
 
-        neueGutschriftRow.setNettoBetrag(netto(neueGutschriftRow.getValue("brutto Betrag"), prozent));
-        neueGutschriftRow.setMehrwertsteuer(vorsteuer(neueGutschriftRow.getValue("brutto Betrag"), prozent));
-
-        neueGutschriftRow.setKonto(konto);
-
-        var gegenkonto = 'bar';
-        var bezahltAm = datum;
-        if (belegName.indexOf("bar") != -1 || belegName.indexOf("Bar") != -1) gegenkonto = "bar";
-        if (belegName.indexOf("auf Rechnung") != -1 || belegName.indexOf("Auf Rechnung") != -1) { gegenkonto = "auf Rechnung"; bezahltAm = ""; }
-        if (belegName.indexOf("mit Karte") != -1 || belegName.indexOf("Mit Karte") != -1) { gegenkonto = "mit Karte"; bezahltAm = ""; }
-        if (belegName.indexOf("Verbindlichkeiten Umsatzsteuer") != -1 ) { gegenkonto = "Verbindlichkeiten Umsatzsteuer"; bezahltAm = ""; }
-        
-
-        neueGutschriftRow.setBezahltAm(bezahltAm);
-
+        neueGutschriftRow.setNettoBetrag(netto(neueGutschriftRow.getBetrag(), prozent));
+        neueGutschriftRow.setMehrwertsteuer(vorsteuer(neueGutschriftRow.getBetrag(), prozent));
+        neueGutschriftRow.setName(konto);
+        var gegenkonto = 'offene Forderung';    
         neueGutschriftRow.setGegenkonto(gegenkonto);
-        var ausgabeText = beleg.getName();
-
-        neueGutschriftRow.setText(ausgabeText);
-        updateNameFromDataAndTemplate(neueGutschriftRow,DriveConnector.getValueByName(BM.getRootFolderId(),"AusgabenDatei",oooVersion));
+        updateNameFromDataAndTemplate(neueGutschriftRow,DriveConnector.getValueByName(BM.getRootFolderId(),"GutschriftenDatei",oooVersion));
     }
 }
 

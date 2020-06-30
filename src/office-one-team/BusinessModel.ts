@@ -301,7 +301,7 @@ class BusinessModel {
         if (this.einnahmenRechnungTableCache === undefined) this.einnahmenRechnungTableCache = new EinnahmenRechnungTableCache(this.getRootFolderId());
         return this.einnahmenRechnungTableCache;
     }
-    private getGutschriftenTableCache(): GutschriftenTableCache {
+    public getGutschriftenTableCache(): GutschriftenTableCache {
         if (this.gutschriftenTableCache === undefined) this.gutschriftenTableCache = new GutschriftenTableCache(this.getRootFolderId());
         return this.gutschriftenTableCache;
     }
