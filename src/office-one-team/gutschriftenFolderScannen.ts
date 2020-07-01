@@ -87,7 +87,8 @@ function neueGutschriftEintragen(beleg, belegWoerter, datum, BM: BusinessModel) 
         neueGutschriftRow.setName(konto);
         var gegenkonto = 'offene Forderung';    
         neueGutschriftRow.setGegenkonto(gegenkonto);
-        updateNameFromDataAndTemplate(neueGutschriftRow,DriveConnector.getValueByName(BM.getRootFolderId(),"GutschriftenDatei",oooVersion));
+        checkParsedFile(neueGutschriftRow);
+        //updateNameFromDataAndTemplate(neueGutschriftRow,DriveConnector.getValueByName(BM.getRootFolderId(),"GutschriftenDatei",oooVersion));
     }
 }
 

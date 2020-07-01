@@ -76,7 +76,7 @@ function wennBelegNeuIstEintragen(beleg, datum, BM: BusinessModel) {
     neueAusgabeRow.setText(beleg.getName());
     return;
 }
-
+/*
 function updateNameFromDataAndTemplate(ausgabeRow: Buchung, template: string) {
 
     var columnArray = template.split("_");
@@ -99,6 +99,18 @@ function updateNameFromDataAndTemplate(ausgabeRow: Buchung, template: string) {
         var datum = new Date();
         datei.setDescription(datei.getDescription() + " " + datum.getFullYear() + "." + (datum.getMonth() + 1) + "." + datum.getDay() + ":" + alterName);
     }
+}
+*/
+
+function checkParsedFile(buchungRow: Umbuchung){
+    const file = DriveApp.getFileById(buchungRow.getFileId());
+    const oldName = file.getName();
+    if (oldName.startsWith("✔_"))return;
+    const newName = `✔_${oldName.replace(" ","_")}`;
+    buchungRow.createLink(buchungRow.getFileId(),newName);
+    file.setName(newName);
+    var datum = new Date();
+    file.setDescription(file.getDescription() + " " + datum.getFullYear() + "." + (datum.getMonth() + 1) + "." + datum.getDay() + ":" + oldName);
 }
 
 
@@ -139,11 +151,7 @@ function neuenBewirtungsbelegEintragen(beleg, belegWoerter, monat, BM: BusinessM
         neuerBewirtungsbelegRow.setMehrwertsteuer(neuerBewirtungsbelegRow.getValue("brutto Betrag") - neuerBewirtungsbelegRow.getValue("netto Betrag"));
         neuerBewirtungsbelegRow.setAbziehbareBewirtungskosten(round2Fixed(neuerBewirtungsbelegRow.getValue("netto Betrag") * 0.7));
         neuerBewirtungsbelegRow.setNichtAbziehbareBewirtungskosten(neuerBewirtungsbelegRow.getValue("netto Betrag") - neuerBewirtungsbelegRow.getValue("abziehbare Bewirtungskosten"));
-
-
-        var neuerDateiname = "✔ " + beleg.getName();
-        beleg.setName(neuerDateiname.replace(" ", "_"));
-        neuerBewirtungsbelegRow.createLink(beleg.getId, neuerDateiname.replace(" ", "_"));
+        checkParsedFile(neuerBewirtungsbelegRow);
     }
 
 }
@@ -209,7 +217,8 @@ function neueAusgabeEintragen(beleg, belegWoerter, datum, BM: BusinessModel) {
         var ausgabeText = beleg.getName();
 
         neueAusgabeRow.setText(ausgabeText);
-        updateNameFromDataAndTemplate(neueAusgabeRow, DriveConnector.getValueByName(BM.getRootFolderId(), "AusgabenDatei", oooVersion));
+        checkParsedFile(neueAusgabeRow);
+        //updateNameFromDataAndTemplate(neueAusgabeRow, DriveConnector.getValueByName(BM.getRootFolderId(), "AusgabenDatei", oooVersion));
     }
 }
 
