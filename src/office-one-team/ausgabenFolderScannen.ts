@@ -37,7 +37,7 @@ function ausgabenFolderScannen(rootFolderId: string, month: string) {
 }
 
 function wennBelegNeuIstEintragen(beleg, datum, BM: BusinessModel) {
-    Logger.log("belegID" + beleg.getId);
+    Logger.log("belegID" + beleg.getId());
     //Ist Beleg schon in Ausgabetabelle eingetragen?
     var ausgabeDaten = BM.getAusgabenTableCache().getOrCreateHashTable("ID")[beleg.getId()];
     if (ausgabeDaten != null) {
@@ -105,8 +105,8 @@ function updateNameFromDataAndTemplate(ausgabeRow: Buchung, template: string) {
 function checkParsedFile(buchungRow: Umbuchung) {
     const file = DriveApp.getFileById(buchungRow.getFileId());
     const oldName = file.getName();
-    if (oldName.startsWith("✔_")) return;
-    const newName = `✔_${oldName.replace(" ", "_")}`;
+    if (oldName.indexOf("✔")===0) return;
+    const newName = `✔_${oldName}`;
     buchungRow.createLink(buchungRow.getFileId(), newName);
     file.setName(newName);
     var datum = new Date();
@@ -128,21 +128,23 @@ function neuenBewirtungsbelegEintragen(beleg, belegWoerter, monat, BM: BusinessM
     var konto = "";
     while (isNaN(belegWoerter[index].charAt(0))) index++;
     neuerBewirtungsbelegRow.setBetrag(parseFloat(belegWoerter[index].replace(".", "").replace(",", ".")));
-
+    index++;
     konto = belegWoerter[0];
-
-    while (index > 1) {
-        index--;
-        konto += " " + belegWoerter[index];
-    }
 
     neuerBewirtungsbelegRow.setKonto(konto);
     neuerBewirtungsbelegRow.setGegenkonto('bar');
     neuerBewirtungsbelegRow.setText(beleg.getName());
     //Corona Mehrtwertsteuer
     if (monat > new Date(2020, 5, 30) && monat < new Date(2021, 6, 1)) {
-        while (isNaN(belegWoerter[index].charAt(0))) index++;
-        neuerBewirtungsbelegRow.setMehrwertsteuer(parseFloat(belegWoerter[index].replace(".", "").replace(",", ".")))
+        Logger.log(`Corona: Wortindex:${index} Wort${belegWoerter[index]}`)
+        while (isNaN(belegWoerter[index].charAt(0)))
+        {
+            Logger.log(`Corona: Wortindex:${index} Wort${belegWoerter[index]}`)
+            index++;
+        }
+        const mwstString = belegWoerter[index];
+        Logger.log(`Corona MwSt:${mwstString}`);
+        neuerBewirtungsbelegRow.setMehrwertsteuer(parseFloat(mwstString.replace(".", "").replace(",", ".")))
         neuerBewirtungsbelegRow.setNettoBetrag(neuerBewirtungsbelegRow.getBetrag() - neuerBewirtungsbelegRow.getMehrwertsteuer());
     }
     else
