@@ -102,12 +102,12 @@ function updateNameFromDataAndTemplate(ausgabeRow: Buchung, template: string) {
 }
 */
 
-function checkParsedFile(buchungRow: Umbuchung){
+function checkParsedFile(buchungRow: Umbuchung) {
     const file = DriveApp.getFileById(buchungRow.getFileId());
     const oldName = file.getName();
-    if (oldName.startsWith("✔_"))return;
-    const newName = `✔_${oldName.replace(" ","_")}`;
-    buchungRow.createLink(buchungRow.getFileId(),newName);
+    if (oldName.startsWith("✔_")) return;
+    const newName = `✔_${oldName.replace(" ", "_")}`;
+    buchungRow.createLink(buchungRow.getFileId(), newName);
     file.setName(newName);
     var datum = new Date();
     file.setDescription(file.getDescription() + " " + datum.getFullYear() + "." + (datum.getMonth() + 1) + "." + datum.getDay() + ":" + oldName);
@@ -116,43 +116,42 @@ function checkParsedFile(buchungRow: Umbuchung){
 
 
 function neuenBewirtungsbelegEintragen(beleg, belegWoerter, monat, BM: BusinessModel) {
+    //Geschäftsessen 76,68 € 4,22 € mit Benedikt Gmeindet, Weihanchts- und Jahresabschlussfeier
+    if (belegWoerter.length < 3) return;
 
+    let neuerBewirtungsbelegRow = BM.createBewirtungsbeleg();
+    neuerBewirtungsbelegRow.setFileId(beleg.getId());
+    neuerBewirtungsbelegRow.setDatum(monat);
+    neuerBewirtungsbelegRow.setBezahltAm(monat);
 
-    if (belegWoerter.length > 2) {
-        let neuerBewirtungsbelegRow = BM.createBewirtungsbeleg();
-        neuerBewirtungsbelegRow.setFileId(beleg.getId());
-        neuerBewirtungsbelegRow.setDatum(monat);
-        neuerBewirtungsbelegRow.setBezahltAm(monat);
+    var index = 1;
+    var konto = "";
+    while (isNaN(belegWoerter[index].charAt(0))) index++;
+    neuerBewirtungsbelegRow.setBetrag(parseFloat(belegWoerter[index].replace(".", "").replace(",", ".")));
 
-        var index = 1;
-        var konto = "";
-        while (isNaN(belegWoerter[index].charAt(0))) index++;
+    konto = belegWoerter[0];
 
-        neuerBewirtungsbelegRow.setBetrag(parseFloat(belegWoerter[index].replace(".", "").replace(",", ".")));
-        konto = belegWoerter[0];
-
-        while (index > 1) {
-            index--;
-            konto += " " + belegWoerter[index];
-        }
-
-        neuerBewirtungsbelegRow.setKonto(konto);
-        neuerBewirtungsbelegRow.setGegenkonto('bar');
-        neuerBewirtungsbelegRow.setText(beleg.getName());
-        //Corona Mehrtwertsteuer
-        if (monat > new Date(2020, 5, 30) && monat < new Date(2021, 0, 1))
-            neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.05));
-        else {
-            if (monat > new Date(2020, 11, 31) && monat < new Date(2021, 6, 1))
-                neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.07));
-            else
-                neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.19));
-        }
-        neuerBewirtungsbelegRow.setMehrwertsteuer(neuerBewirtungsbelegRow.getValue("brutto Betrag") - neuerBewirtungsbelegRow.getValue("netto Betrag"));
-        neuerBewirtungsbelegRow.setAbziehbareBewirtungskosten(round2Fixed(neuerBewirtungsbelegRow.getValue("netto Betrag") * 0.7));
-        neuerBewirtungsbelegRow.setNichtAbziehbareBewirtungskosten(neuerBewirtungsbelegRow.getValue("netto Betrag") - neuerBewirtungsbelegRow.getValue("abziehbare Bewirtungskosten"));
-        checkParsedFile(neuerBewirtungsbelegRow);
+    while (index > 1) {
+        index--;
+        konto += " " + belegWoerter[index];
     }
+
+    neuerBewirtungsbelegRow.setKonto(konto);
+    neuerBewirtungsbelegRow.setGegenkonto('bar');
+    neuerBewirtungsbelegRow.setText(beleg.getName());
+    //Corona Mehrtwertsteuer
+    if (monat > new Date(2020, 5, 30) && monat < new Date(2021, 6, 1)) {
+        while (isNaN(belegWoerter[index].charAt(0))) index++;
+        neuerBewirtungsbelegRow.setMehrwertsteuer(parseFloat(belegWoerter[index].replace(".", "").replace(",", ".")))
+        neuerBewirtungsbelegRow.setNettoBetrag(neuerBewirtungsbelegRow.getBetrag() - neuerBewirtungsbelegRow.getMehrwertsteuer());
+    }
+    else
+        neuerBewirtungsbelegRow.setNettoBetrag(round2Fixed(neuerBewirtungsbelegRow.getValue("brutto Betrag") / 1.19));
+
+    neuerBewirtungsbelegRow.setMehrwertsteuer(neuerBewirtungsbelegRow.getValue("brutto Betrag") - neuerBewirtungsbelegRow.getValue("netto Betrag"));
+    neuerBewirtungsbelegRow.setAbziehbareBewirtungskosten(round2Fixed(neuerBewirtungsbelegRow.getValue("netto Betrag") * 0.7));
+    neuerBewirtungsbelegRow.setNichtAbziehbareBewirtungskosten(neuerBewirtungsbelegRow.getValue("netto Betrag") - neuerBewirtungsbelegRow.getValue("abziehbare Bewirtungskosten"));
+    checkParsedFile(neuerBewirtungsbelegRow);
 
 }
 
