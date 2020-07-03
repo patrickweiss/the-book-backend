@@ -15,7 +15,8 @@ enum ServerFunction {
     getOrCreateGutschriftenFolder = "getOrCreateGutschriftenFolder",
     gutschriftenFolderScannen ="gutschriftenFolderScannen",
     ausgabenFolderScannen = "ausgabenFolderScannen",
-    bankbuchungenFolderScannen = "bankbuchungenFolderScannen"
+    bankbuchungenFolderScannen = "bankbuchungenFolderScannen",
+    UStVAberechnen="UStVAberechnen"
 }
 
 const months = {

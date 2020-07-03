@@ -33,7 +33,7 @@ class TableCache {
     }
     return this.rowHashTable;
   }
-  public getOrCreateHashTable(columnName: string) {
+  public getOrCreateHashTable(columnName: string):Object {
     if (this.columnHashTable[columnName] === undefined) {
       this.columnHashTable[columnName] = {};
       for (let index in this.dataArray) {
@@ -97,6 +97,11 @@ class TableCache {
   }
   public save() {
     DriveConnector.saveNamedRangeData(this.rootId, this.tableName, this.loadRowCount, this.dataArray, this.backgroundArray, this.formulaArray);
+  }
+  public deleteAll(){
+    this.dataArray = [this.dataArray[0]];
+    this.formulaArray = [this.formulaArray[0]];
+    this.backgroundArray = [this.backgroundArray[0]];
   }
   private getColumnIndex(dataColumnNames) {
     var spalte = {};
@@ -259,6 +264,18 @@ class KontenTableCache extends TableCache {
     return super.getOrCreateRowById(kontoName) as Konto;
   }
 
+}
+class NormalisierteBuchungenTableCache extends TableCache{
+  constructor(rootId: string) {
+    super(rootId, "BuchungenD");
+  }
+  public createNewRow(): NormalisierteBuchung { return super.createNewRow() as NormalisierteBuchung; }
+  public getRowByIndex(rowIndex: string): NormalisierteBuchung {
+    return new NormalisierteBuchung(this, rowIndex) as NormalisierteBuchung;
+  }
+  public getOrCreateRowById(id: string): NormalisierteBuchung {
+    return super.getOrCreateRowById(id) as NormalisierteBuchung;
+  }
 }
 //Abstrakte Fassaden für Buchungssätze
 class FinanzAction extends TableRow {
@@ -433,7 +450,40 @@ class Konto extends TableRow {
   public getDefaultMwSt() { return this.getGruppe().split(",")[1]; }
 }
 
-
+class NormalisierteBuchung extends TableRow{
+  public getFileId() { return this.getValue("ID"); }
+  public setFileId(value: string) { this.setValue("ID", value); }
+  public getLink(): string { return this.getFormula("Link"); }
+  public setLink(link: string) { this.setFormula("Link", link); }
+  public getDatum(){return this.getValue("Datum");}
+  public setDatum(value){this.setValue("Datum",value);}
+  public getbezahltam(){return this.getValue("bezahlt am");}
+  public setbezahltam(value){this.setValue("bezahlt am",value);}
+  public getBetrag(){return this.getValue("Betrag");}
+  public setBetrag(value){this.setValue("Betrag",value);}
+  public getText(){return this.getValue("Text");}
+  public setText(value){this.setValue("Text",value);}
+  public getMonat(){return this.getValue("Monat");}
+  public setMonat(value){this.setValue("Monat",value);}
+  public getMonatbezahlt(){return this.getValue("Monat bezahlt");}
+  public setMonatbezahlt(value){this.setValue("Monat bezahlt",value);}
+  public getKontentyp(){return this.getValue("Kontentyp");}
+  public setKontentyp(value){this.setValue("Kontentyp",value);}
+  public getSubtyp(){return this.getValue("Subtyp");}
+  public setSubtyp(value){this.setValue("Subtyp",value);}
+  public getGruppe(){return this.getValue("Gruppe");}
+  public setGruppe(value){this.setValue("Gruppe",value);}
+  public getGegenkonto(){return this.getValue("Gegenkonto");}
+  public setGegenkonto(value){this.setValue("Gegenkonto",value);}
+  public getSKR03(){return this.getValue("SKR03");}
+  public setSKR03(value){this.setValue("SKR03",value);}
+  public getFormular(){return this.getValue("Formular");}
+  public setFormular(value){this.setValue("Formular",value);}
+  public getZN(){return this.getValue("ZN");}
+  public setZN(value){this.setValue("ZN",value);}
+  public getQuelltabelle(){return this.getValue("Quelltabelle");}
+  public setQuelltabelle(value){this.setValue("Quelltabelle",value);}
+}
 
 function uid() { return Math.random.toString() }
 

@@ -44,6 +44,7 @@ class BusinessModel {
     private bankbuchungenTableCache: BankbuchungenTableCache;
     private umbuchungenTableCache: UmbuchungenTableCache;
     private kontenTableCache: KontenTableCache;
+    public normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
     //Server specific code
     constructor(rootfolderId: string) { this.rootFolderId = rootfolderId; }
 
@@ -221,6 +222,19 @@ class BusinessModel {
         konto.setBeispiel(ausgabe.getLink());
         if (kontoArt === "Au") { konto.setKontentyp("GuV"); konto.setSubtyp("Aufwand"); } else { konto.setKontentyp("Bilanz"); konto.setSubtyp("Anlage") }
     }
+    public getNormalisierteBuchungenArray(): NormalisierteBuchung[]{return this.getNormalisierteBuchungenTableCache().getRowArray();}
+
+    public kontoSummenAktualisieren(){
+        const normalisierteBuchungen = this.getNormalisierteBuchungenTableCache();
+        normalisierteBuchungen.deleteAll();
+        const ausgabenRechnungen = this.getAusgabenRechnungArray();
+
+        for (let ausgabe of ausgabenRechnungen){
+            Logger.log("kontoSummenAktualisieren: "+ ausgabe.getId());
+            let neueBuchung = normalisierteBuchungen.createNewRow();
+            neueBuchung.setBetrag(ausgabe.getBetrag());
+        }
+    }
     public umsatzsteuerJahresabrechnung() {
         let fealligeUmsatzsteuer = 0;
         this.getImGeschaeftsjahrBezahlteEinnahmenRechnungen().forEach(rechnung => { fealligeUmsatzsteuer += rechnung.getMehrwertsteuer() });
@@ -296,6 +310,7 @@ class BusinessModel {
         if (this.einnahmenRechnungTableCache !== undefined) this.einnahmenRechnungTableCache.save();
         if (this.gutschriftenTableCache !== undefined) this.gutschriftenTableCache.save();
         if (this.vertraegeTableCache !== undefined) this.vertraegeTableCache.save();
+        if (this.normalisierteBuchungenTableCache !== undefined) this.normalisierteBuchungenTableCache.save();
     }
     private getEinnahmenRechnungTableCache(): EinnahmenRechnungTableCache {
         if (this.einnahmenRechnungTableCache === undefined) this.einnahmenRechnungTableCache = new EinnahmenRechnungTableCache(this.getRootFolderId());
@@ -332,6 +347,10 @@ class BusinessModel {
     private getKontenTableCache(): KontenTableCache {
         if (this.kontenTableCache === undefined) this.kontenTableCache = new KontenTableCache(this.getRootFolderId());
         return this.kontenTableCache;
+    }
+    public getNormalisierteBuchungenTableCache(): NormalisierteBuchungenTableCache {
+        if (this.normalisierteBuchungenTableCache === undefined) this.normalisierteBuchungenTableCache = new NormalisierteBuchungenTableCache(this.getRootFolderId());
+        return this.normalisierteBuchungenTableCache;
     }
     public netto(brutto: number, prozent: string) {
         if (prozent == "19%") return Math.round(brutto / 1.19 * 100) / 100;
