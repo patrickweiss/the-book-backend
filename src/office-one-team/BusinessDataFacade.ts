@@ -303,6 +303,24 @@ class Umbuchung extends Buchung {
   public nichtBezahlt(): boolean { return this.getBezahltAm() === ""; }
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
   public getBetragMitVorzeichen() { return -this.getBetrag() };
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+    const normBuchung = tableCache.createNewRow();
+    normBuchung.setFileId(this.getId());
+    normBuchung.setLink(this.getLink());
+    normBuchung.setDatum(this.getDatum());
+    normBuchung.setbezahltam(this.getBezahltAm());
+    normBuchung.setBetrag(-this.getBetrag());
+    normBuchung.setText(this.getText());
+    let monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    if (monat ===null)monat = Number.NaN;
+    let monatBezahlt:Number | "offen"="offen";
+    if (this.getBezahltAm()!=="offen")monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+    normBuchung.setMonat(monat);
+    normBuchung.setMonatbezahlt(monatBezahlt);
+    //Kontenstammdaten werden später ergänzt
+    normBuchung.setKonto(this.getKonto());
+    normBuchung.setQuelltabelle("Umbuchung");
+  }
 }
 class Rechnung extends Umbuchung {
   public getBezahltAm() { return this.getValue("bezahlt am"); }
@@ -450,19 +468,19 @@ class Konto extends TableRow {
   public getDefaultMwSt() { return this.getGruppe().split(",")[1]; }
 }
 
-class NormalisierteBuchung extends TableRow{
+class NormalisierteBuchung extends FinanzAction{
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
   public getLink(): string { return this.getFormula("Link"); }
   public setLink(link: string) { this.setFormula("Link", link); }
-  public getDatum(){return this.getValue("Datum");}
-  public setDatum(value){this.setValue("Datum",value);}
+  //public getDatum(){return this.getValue("Datum");}
+  //public setDatum(value){this.setValue("Datum",value);}
   public getbezahltam(){return this.getValue("bezahlt am");}
   public setbezahltam(value){this.setValue("bezahlt am",value);}
-  public getBetrag(){return this.getValue("Betrag");}
-  public setBetrag(value){this.setValue("Betrag",value);}
-  public getText(){return this.getValue("Text");}
-  public setText(value){this.setValue("Text",value);}
+  //public getBetrag(){return this.getValue("Betrag");}
+  //public setBetrag(value){this.setValue("Betrag",value);}
+  //public getText(){return this.getValue("Text");}
+  //public setText(value){this.setValue("Text",value);}
   public getMonat(){return this.getValue("Monat");}
   public setMonat(value){this.setValue("Monat",value);}
   public getMonatbezahlt(){return this.getValue("Monat bezahlt");}
@@ -473,8 +491,10 @@ class NormalisierteBuchung extends TableRow{
   public setSubtyp(value){this.setValue("Subtyp",value);}
   public getGruppe(){return this.getValue("Gruppe");}
   public setGruppe(value){this.setValue("Gruppe",value);}
-  public getGegenkonto(){return this.getValue("Gegenkonto");}
-  public setGegenkonto(value){this.setValue("Gegenkonto",value);}
+  //Das ist wahrscheinlich falsch, muss semantisch "Konto" heißen
+  //kann ich umstellen, wenn der ganze Code auf TS migriert ist
+  public getKonto(){return this.getValue("Gegenkonto");}
+  public setKonto(value){this.setValue("Gegenkonto",value);}
   public getSKR03(){return this.getValue("SKR03");}
   public setSKR03(value){this.setValue("SKR03",value);}
   public getFormular(){return this.getValue("Formular");}
@@ -487,3 +507,30 @@ class NormalisierteBuchung extends TableRow{
 
 function uid() { return Math.random.toString() }
 
+function belegMonat(geschaeftsjahr:Date,belegDatum:Date){
+  if (belegDatum<geschaeftsjahr){
+    var result = belegDatum.getFullYear()-geschaeftsjahr.getFullYear();
+    if (result < -4) result = -4;
+    return result;
+  } else 
+   {
+    if (belegDatum.getFullYear()-geschaeftsjahr.getFullYear()>0) return 13;
+    return belegDatum.getMonth()+1;
+  }
+
+}
+
+function bezahltMonat(geschaeftsjahr:Date,bezahltDatum:Date){
+  if (bezahltDatum<geschaeftsjahr){
+    var result = bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear();
+    if (result < -4) result = -4;
+    return result;
+  }
+  else 
+  {
+    if (bezahltDatum==undefined)return "offen";
+    if (bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear()>0) return 13;
+    return bezahltDatum.getMonth()+1;
+  }
+
+}

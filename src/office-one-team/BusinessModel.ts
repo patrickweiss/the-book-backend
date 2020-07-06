@@ -231,6 +231,7 @@ class BusinessModel {
 
         for (let ausgabe of ausgabenRechnungen){
             Logger.log("kontoSummenAktualisieren: "+ ausgabe.getId());
+            
             let neueBuchung = normalisierteBuchungen.createNewRow();
             neueBuchung.setBetrag(ausgabe.getBetrag());
         }
