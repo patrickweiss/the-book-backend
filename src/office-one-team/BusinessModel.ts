@@ -25,14 +25,14 @@ enum Type {
     GutschriftBuchen = "GutschriftBuchen"
 }
 interface IAction {
-    type:Type;
- }
+    type: Type;
+}
 interface IBelegZuBankbuchungZuordnen extends IAction {
     belegTyp: BelegTyp;
     belegID: string;
     bankbuchungID: string;
     datum: Date;
-  }
+}
 class BusinessModel {
     private rootFolderId: string;
     private einnahmenRechnungTableCache: EinnahmenRechnungTableCache;
@@ -48,7 +48,15 @@ class BusinessModel {
     //Server specific code
     constructor(rootfolderId: string) { this.rootFolderId = rootfolderId; }
 
-    public endOfYear() { return new Date(parseInt(DriveConnector.getValueByName(this.rootFolderId, "KontenJahr", oooVersion).toString()), 11, 31); }
+    private endOfYearCache: Date;
+    public endOfYear() {
+        if (this.endOfYearCache) return this.endOfYearCache;
+        else {
+            this.endOfYearCache = new Date(parseInt(DriveConnector.getValueByName(this.rootFolderId, "KontenJahr", oooVersion).toString()), 11, 31);
+            return this.endOfYearCache;
+        }
+    }
+    public beginOfYear() { return new Date(this.endOfYear().getFullYear(), 0, 1) }
     public getRootFolderId() { return this.rootFolderId; }
 
     // Generic code for client and server identical 
@@ -138,7 +146,7 @@ class BusinessModel {
             bankbuchung.setBelegID(beleg.getId());
             bankbuchung.setLink(beleg.getLink());
             bankbuchung.setGegenkonto(beleg.getGegenkonto());
-            if (action.belegTyp != BelegTyp.Vertrag && Math.abs(bankbuchung.getBetrag()- beleg.getBetragMitVorzeichen()) > 0.001 ) {
+            if (action.belegTyp != BelegTyp.Vertrag && Math.abs(bankbuchung.getBetrag() - beleg.getBetragMitVorzeichen()) > 0.001) {
                 const splitBuchung = this.getBankbuchungenTableCache().createNewRow();
                 //Wenn eine eine Zeile im Array erzeugt wird, wird die aktuelle bankbuchung nach unten verschoben
                 //um weiterhin auf deren Daten zugreifen zu können, muss ein neuer Wrapper erzeugt werden
@@ -148,7 +156,7 @@ class BusinessModel {
                 splitBuchung.setDatum(bankbuchung.getDatum());
                 splitBuchung.setBetrag(bankbuchung.getBetrag() - beleg.getBetragMitVorzeichen());
                 splitBuchung.setText(bankbuchung.getText());
-               //todo ...
+                //todo ...
                 //throw new Error("Betrag des Beleges stimmt nicht mit Bankbuchungsbetrag überein"); 
             }
         }
@@ -184,7 +192,7 @@ class BusinessModel {
     }
     public getBankbuchungLatest(konto: string): Bankbuchung {
         let latestEntry: Bankbuchung = undefined;
-        this.getBankbuchungenArray().filter(buchung => { return buchung.getKonto() === konto && buchung.getNr()!=="EB"}).forEach(buchung => {
+        this.getBankbuchungenArray().filter(buchung => { return buchung.getKonto() === konto && buchung.getNr() !== "EB" }).forEach(buchung => {
             if (latestEntry === undefined) latestEntry = buchung;
             if (latestEntry.getId() < buchung.getId()) latestEntry = buchung;
         })
@@ -222,16 +230,16 @@ class BusinessModel {
         konto.setBeispiel(ausgabe.getLink());
         if (kontoArt === "Au") { konto.setKontentyp("GuV"); konto.setSubtyp("Aufwand"); } else { konto.setKontentyp("Bilanz"); konto.setSubtyp("Anlage") }
     }
-    public getNormalisierteBuchungenArray(): NormalisierteBuchung[]{return this.getNormalisierteBuchungenTableCache().getRowArray();}
+    public getNormalisierteBuchungenArray(): NormalisierteBuchung[] { return this.getNormalisierteBuchungenTableCache().getRowArray(); }
 
-    public kontoSummenAktualisieren(){
+    public kontoSummenAktualisieren() {
         const normalisierteBuchungen = this.getNormalisierteBuchungenTableCache();
         normalisierteBuchungen.deleteAll();
         const umbuchungen = this.getUmbuchungenArray();
-
-        for (let umbuchung of umbuchungen){
-            Logger.log("kontoSummenAktualisieren: "+ umbuchung.getId());
-            umbuchung.addToTableCache(normalisierteBuchungen,this.endOfYear());
+    
+        for (let umbuchung of umbuchungen) {
+            Logger.log("kontoSummenAktualisieren: " + umbuchung.getId());
+            umbuchung.addToTableCache(normalisierteBuchungen, this.beginOfYear());
         }
     }
     public umsatzsteuerJahresabrechnung() {

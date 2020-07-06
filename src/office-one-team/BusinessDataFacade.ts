@@ -304,22 +304,41 @@ class Umbuchung extends Buchung {
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
   public getBetragMitVorzeichen() { return -this.getBetrag() };
   public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
-    const normBuchung = tableCache.createNewRow();
+    let monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    if (monat ===null)monat = Number.NaN;
+    let monatBezahlt:Number | "offen"="offen";
+    if (this.getBezahltAm()!=="offen")monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+
+    //Buchung auf Konto
+    let normBuchung = tableCache.createNewRow();
     normBuchung.setFileId(this.getId());
     normBuchung.setLink(this.getLink());
     normBuchung.setDatum(this.getDatum());
     normBuchung.setbezahltam(this.getBezahltAm());
     normBuchung.setBetrag(-this.getBetrag());
     normBuchung.setText(this.getText());
-    let monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    if (monat ===null)monat = Number.NaN;
-    let monatBezahlt:Number | "offen"="offen";
-    if (this.getBezahltAm()!=="offen")monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
     normBuchung.setMonat(monat);
     normBuchung.setMonatbezahlt(monatBezahlt);
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto(this.getKonto());
     normBuchung.setQuelltabelle("Umbuchung");
+
+    //Buchung auf Gegenkonto
+    normBuchung = tableCache.createNewRow();
+    normBuchung.setFileId(this.getId());
+    normBuchung.setLink(this.getLink());
+    normBuchung.setDatum(this.getDatum());
+    normBuchung.setbezahltam(this.getBezahltAm());
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getBetrag());
+    normBuchung.setText(this.getText());
+    normBuchung.setMonat(monat);
+    normBuchung.setMonatbezahlt(monatBezahlt);
+    //Kontenstammdaten werden später ergänzt
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+    normBuchung.setQuelltabelle("Umbuchung");
+
   }
 }
 class Rechnung extends Umbuchung {
@@ -521,6 +540,8 @@ function belegMonat(geschaeftsjahr:Date,belegDatum:Date){
 }
 
 function bezahltMonat(geschaeftsjahr:Date,bezahltDatum:Date){
+  if (bezahltDatum==undefined)return "offen";
+  if (!(bezahltDatum instanceof Date))return "offen";
   if (bezahltDatum<geschaeftsjahr){
     var result = bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear();
     if (result < -4) result = -4;
@@ -528,9 +549,7 @@ function bezahltMonat(geschaeftsjahr:Date,bezahltDatum:Date){
   }
   else 
   {
-    if (bezahltDatum==undefined)return "offen";
     if (bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear()>0) return 13;
     return bezahltDatum.getMonth()+1;
   }
-
 }
