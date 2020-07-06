@@ -436,6 +436,26 @@ class Gutschrift extends Rechnung {
   public setBetrag(value: any) { this.setValue("Gutschriftbetrag", value); }
   public getDokumententyp() { return this.getValue("Dokumententyp"); }
   public setDokumententyp(value: any) { this.setValue("Dokumententyp", value); }
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
+    super.addToTableCache(tableCache,geschaeftsjahr);
+  
+    //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields("Rechnung",normBuchung);
+    normBuchung.setBetrag(this.getMehrwertsteuer());
+    //Kontenstammdaten werden später ergänzt
+    normBuchung.setKonto("USt. in Rechnung gestellt");
+  
+    //Buchung Mehrwertsteuer auf Bilanzkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields("Rechnung",normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(-this.getMehrwertsteuer());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+  
+  }
+
 }
 //Fassade der Tabellen in Ausgaben
 class AusgabenRechnung extends Rechnung {
@@ -468,12 +488,36 @@ class AusgabenRechnung extends Rechnung {
 class Bewirtungsbeleg extends AusgabenRechnung {
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
+  public getKonto(){return"abziehbare Bewirtungskosten"};
+  public getNettoBetragMitVorzeichen(){return -this.getAbziehbareBewirtungskosten()}; 
+
   public getTrinkgeld() { return this.getValue("Trinkgeld"); }
   public setTrinkgeld(betrag: number) { this.setValue("Trinkgeld", betrag); }
   public getAbziehbareBewirtungskosten() { return this.getValue("abziehbare Bewirtungskosten"); }
   public setAbziehbareBewirtungskosten(value: any) { this.setValue("abziehbare Bewirtungskosten", value); }
   public getNichtAbziehbareBewirtungskosten() { return this.getValue("nicht abziehbare Bewirtungskosten"); }
   public setNichtAbziehbareBewirtungskosten(value: any) { this.setValue("nicht abziehbare Bewirtungskosten", value); }
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
+    super.addToTableCache(tableCache,geschaeftsjahr);
+
+    //Buchung nicht abziehbare Bewirtungskosten
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields("Bewirtungsbeleg",normBuchung);
+    normBuchung.setBetrag(-this.getNichtAbziehbareBewirtungskosten());
+    //Kontenstammdaten werden später ergänzt
+    normBuchung.setKonto("nicht abziehbare Bewirtungskosten");
+
+    //Buchung nicht abziehbare Bewirtungskosten auf Bilanzkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields("Bewirtungsbeleg",normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getNichtAbziehbareBewirtungskosten());
+    //Kontenstammdaten werden später ergänzt
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+  
+  }
+
 }
 class Abschreibung extends Buchung { }
 //Fassade der Tabellen in Bankbuchungen

@@ -236,7 +236,9 @@ class BusinessModel {
         this.getNormalisierteBuchungenTableCache().deleteAll();
         this.addToNormalisierteBuchungen(this.getUmbuchungenArray());
         this.addToNormalisierteBuchungen(this.getEinnahmenRechnungArray());
+        this.addToNormalisierteBuchungen(this.getGutschriftenArray());   
         this.addToNormalisierteBuchungen(this.getAusgabenRechnungArray());
+        this.addToNormalisierteBuchungen(this.getBewirtungsbelegeArray());
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
