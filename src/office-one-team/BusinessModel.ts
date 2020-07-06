@@ -227,13 +227,11 @@ class BusinessModel {
     public kontoSummenAktualisieren(){
         const normalisierteBuchungen = this.getNormalisierteBuchungenTableCache();
         normalisierteBuchungen.deleteAll();
-        const ausgabenRechnungen = this.getAusgabenRechnungArray();
+        const umbuchungen = this.getUmbuchungenArray();
 
-        for (let ausgabe of ausgabenRechnungen){
-            Logger.log("kontoSummenAktualisieren: "+ ausgabe.getId());
-            
-            let neueBuchung = normalisierteBuchungen.createNewRow();
-            neueBuchung.setBetrag(ausgabe.getBetrag());
+        for (let umbuchung of umbuchungen){
+            Logger.log("kontoSummenAktualisieren: "+ umbuchung.getId());
+            umbuchung.addToTableCache(normalisierteBuchungen,this.endOfYear());
         }
     }
     public umsatzsteuerJahresabrechnung() {
