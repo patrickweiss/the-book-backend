@@ -296,49 +296,46 @@ class Buchung extends FinanzAction {
   public createLink(id: string, name: string) { this.setFormula("Link", "=HYPERLINK(\"https://drive.google.com/file/d/" + id + "\";\"" + name + "\")"); }
 }
 class Umbuchung extends Buchung {
+  public getNettoBetragMitVorzeichen(){return this.getBetragMitVorzeichen()};
+  public getBetragMitVorzeichen() { return -this.getBetrag() };
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
   public getBezahltAm() { return this.getValue("bezahlt am"); }
   public setBezahltAm(datum: Date) { this.setValue("bezahlt am", datum); }
   public nichtBezahlt(): boolean { return this.getBezahltAm() === ""; }
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
-  public getBetragMitVorzeichen() { return -this.getBetrag() };
+  protected monat:number;
+  protected monatBezahlt:Number | "offen"="offen";
   public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
-    let monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    if (monat ===null)monat = Number.NaN;
-    let monatBezahlt:Number | "offen"="offen";
-    if (this.getBezahltAm()!=="offen")monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+    const quellTabelle = "Umbuchung";
+    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    if (this.monat ===null)this.monat = Number.NaN;
+    if (this.getBezahltAm()!=="offen")this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    normBuchung.setFileId(this.getId());
-    normBuchung.setLink(this.getLink());
-    normBuchung.setDatum(this.getDatum());
-    normBuchung.setbezahltam(this.getBezahltAm());
-    normBuchung.setBetrag(-this.getBetrag());
-    normBuchung.setText(this.getText());
-    normBuchung.setMonat(monat);
-    normBuchung.setMonatbezahlt(monatBezahlt);
-    //Kontenstammdaten werden später ergänzt
+    this.copyFields(quellTabelle,normBuchung);
+    normBuchung.setBetrag(this.getNettoBetragMitVorzeichen());
     normBuchung.setKonto(this.getKonto());
-    normBuchung.setQuelltabelle("Umbuchung");
-
+   
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(-this.getNettoBetragMitVorzeichen());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+
+  }
+  protected copyFields(quellTabelle:string,normBuchung:NormalisierteBuchung){
     normBuchung.setFileId(this.getId());
     normBuchung.setLink(this.getLink());
     normBuchung.setDatum(this.getDatum());
     normBuchung.setbezahltam(this.getBezahltAm());
-    //Vorzeichen wechseln
-    normBuchung.setBetrag(this.getBetrag());
     normBuchung.setText(this.getText());
-    normBuchung.setMonat(monat);
-    normBuchung.setMonatbezahlt(monatBezahlt);
-    //Kontenstammdaten werden später ergänzt
-    //Konto wechseln
-    normBuchung.setKonto(this.getGegenkonto());
-    normBuchung.setQuelltabelle("Umbuchung");
-
+    normBuchung.setMonat(this.monat);
+    normBuchung.setMonatbezahlt(this.monatBezahlt);
+    normBuchung.setQuelltabelle(quellTabelle);
   }
 }
 class Rechnung extends Umbuchung {
@@ -349,6 +346,7 @@ class Rechnung extends Umbuchung {
   public getBetrag() { return this.getValue("brutto Betrag"); }
   public setBetrag(value: any) { this.setValue("brutto Betrag", value); }
   public getBetragMitVorzeichen() { return this.getBetrag() };
+  public getNettoBetragMitVorzeichen(){return this.getNettoBetrag()};
   public getNettoBetrag() { return this.getValue("netto Betrag"); }
   public setNettoBetrag(betrag: number) { this.setValue("netto Betrag", betrag); }
   public getMehrwertsteuer() { return this.getValue("Summe Umsatzsteuer"); }
@@ -405,6 +403,25 @@ class EinnahmenRechnung extends Rechnung {
   public setDokumententyp(value: any) { this.setValue("Dokumententyp", value); }
   public getZahlungsziel() { return this.getValue("Zahlungsziel"); }
   public setZahlungsziel(value: any) { this.setValue("Zahlungsziel", value); }
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
+    super.addToTableCache(tableCache,geschaeftsjahr);
+  
+    //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields("Rechnung",normBuchung);
+    normBuchung.setBetrag(this.getMehrwertsteuer());
+    //Kontenstammdaten werden später ergänzt
+    normBuchung.setKonto("USt. in Rechnung gestellt");
+  
+    //Buchung Mehrwertsteuer auf Bilanzkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields("Rechnung",normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(-this.getMehrwertsteuer());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+  
+  }
 
 }
 class Gutschrift extends Rechnung {
@@ -425,6 +442,28 @@ class AusgabenRechnung extends Rechnung {
   public getMehrwertsteuer() { return this.getValue("Vorsteuer"); }
   public setMehrwertsteuer(betrag: number) { this.setValue("Vorsteuer", betrag); }
   public getBetragMitVorzeichen() { return -this.getBetrag() };
+  public getNettoBetragMitVorzeichen(){return -this.getNettoBetrag()};
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
+    super.addToTableCache(tableCache,geschaeftsjahr);
+
+    //Buchung Vorsteuer auf Vorsteuer
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields("Ausgabe",normBuchung);
+    normBuchung.setBetrag(-this.getMehrwertsteuer());
+    //Kontenstammdaten werden später ergänzt
+    normBuchung.setKonto("Vorsteuer");
+
+    //Buchung Vorsteuer auf Bilanzkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields("Ausgabe",normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getMehrwertsteuer());
+    //Kontenstammdaten werden später ergänzt
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+  
+  }
+
 }
 class Bewirtungsbeleg extends AusgabenRechnung {
   public getFileId() { return this.getValue("ID"); }

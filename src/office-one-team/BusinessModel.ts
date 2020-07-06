@@ -233,13 +233,14 @@ class BusinessModel {
     public getNormalisierteBuchungenArray(): NormalisierteBuchung[] { return this.getNormalisierteBuchungenTableCache().getRowArray(); }
 
     public kontoSummenAktualisieren() {
-        const normalisierteBuchungen = this.getNormalisierteBuchungenTableCache();
-        normalisierteBuchungen.deleteAll();
-        const umbuchungen = this.getUmbuchungenArray();
-    
+        this.getNormalisierteBuchungenTableCache().deleteAll();
+        this.addToNormalisierteBuchungen(this.getUmbuchungenArray());
+        this.addToNormalisierteBuchungen(this.getEinnahmenRechnungArray());
+        this.addToNormalisierteBuchungen(this.getAusgabenRechnungArray());
+    }
+    private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
-            Logger.log("kontoSummenAktualisieren: " + umbuchung.getId());
-            umbuchung.addToTableCache(normalisierteBuchungen, this.beginOfYear());
+            umbuchung.addToTableCache(this.getNormalisierteBuchungenTableCache(), this.beginOfYear());
         }
     }
     public umsatzsteuerJahresabrechnung() {
