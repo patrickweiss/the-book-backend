@@ -216,6 +216,17 @@ class EinnahmenRechnungTableCache extends TableCache {
     return super.getOrCreateRowById(id) as EinnahmenRechnung;
   }
 }
+class EURechnungTableCache extends TableCache {
+  constructor(rootId: string) {
+    super(rootId, "EURechnungenD");
+  }
+  public getRowByIndex(rowIndex: string): EURechnung {
+    return new EURechnung(this, rowIndex);
+  }
+  public getOrCreateRowById(id: string): EURechnung {
+    return super.getOrCreateRowById(id) as EURechnung;
+  }
+}
 class GutschriftenTableCache extends TableCache {
   constructor(rootId: string) {
     super(rootId, "GutschriftenD");
@@ -355,10 +366,38 @@ class Rechnung extends Umbuchung {
   public getDateiTyp() { return this.getValue("Dateityp"); }
   public setDateiTyp(dateityp: string) { this.setValue("Dateityp", dateityp); }
 }
+
+class EURechnung extends Umbuchung{
+  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
+  public getKonto(){return "Leistung:"+this.getValue("USt-IdNr");}
+
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+    const quellTabelle = "EURechnung";
+    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    if (this.monat ===null)this.monat = Number.NaN;
+    if (this.getBezahltAm()!=="offen")this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+
+    //Buchung auf Konto
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    normBuchung.setBetrag(this.getNettoBetragMitVorzeichen());
+    normBuchung.setKonto(this.getKonto());
+   
+    //Buchung auf Gegenkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(-this.getNettoBetragMitVorzeichen());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+
+  }
+
+}
 //Fassade der Tabellen in Einnahmen
 class EinnahmenRechnung extends Rechnung {
   public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
-  public getKonto(){return "Debitor:"+this.getValue("Name");}
+  public getKonto(){return "Leistung:"+this.getValue("Name");}
   public getStatus() { return this.getValue("Status"); }
   public setStatus(value: any) { this.setValue("Status", value); }
   public getRechnungsNr() { return this.getValue("Rechnungs-Nr"); }
@@ -426,6 +465,7 @@ class EinnahmenRechnung extends Rechnung {
   }
 
 }
+
 class Gutschrift extends Rechnung {
   public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
   public getKonto(){return "Debitor:"+this.getValue("Name");}
@@ -522,7 +562,28 @@ class Bewirtungsbeleg extends AusgabenRechnung {
   }
 
 }
-class Abschreibung extends Buchung { }
+class Abschreibung extends Umbuchung {
+  public getBezahltAm(){return this.getDatum()};
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+    const quellTabelle = "Abschreibung";
+    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+
+    //Buchung auf Konto
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    normBuchung.setBetrag(-this.getBetrag());
+    normBuchung.setKonto(this.getKonto());
+   
+    //Buchung auf Gegenkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getBetrag());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+ }
+}
 //Fassade der Tabellen in Bankbuchungen
 class Vertrag extends Umbuchung {
   public getBezahltAm() { return ""; }
@@ -630,7 +691,7 @@ class NormalisierteBuchung extends FinanzAction{
   public setSubtyp(value){this.setValue("Subtyp",value);}
   public getGruppe(){return this.getValue("Gruppe");}
   public setGruppe(value){this.setValue("Gruppe",value);}
-  //Das ist wahrscheinlich falsch, muss semantisch "Konto" heißen
+  //Das ist wahrscheinlich falsch, Tabellenspalte muss semantisch "Konto" heißen
   //kann ich umstellen, wenn der ganze Code auf TS migriert ist
   public getKonto(){return this.getValue("Gegenkonto");}
   public setKonto(value){this.setValue("Gegenkonto",value);}

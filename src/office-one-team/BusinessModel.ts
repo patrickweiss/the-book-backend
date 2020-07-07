@@ -36,6 +36,7 @@ interface IBelegZuBankbuchungZuordnen extends IAction {
 class BusinessModel {
     private rootFolderId: string;
     private einnahmenRechnungTableCache: EinnahmenRechnungTableCache;
+    private EURechnungTableCache: EURechnungTableCache;
     private gutschriftenTableCache: GutschriftenTableCache;
     private ausgabenTableCache: AusgabenTableCache;
     private bewirtungsbelegeTableCache: BewirtungsbelegeTableCache;
@@ -97,6 +98,7 @@ class BusinessModel {
     }
 
     public getEinnahmenRechnungArray(): EinnahmenRechnung[] { return this.getEinnahmenRechnungTableCache().getRowArray(); }
+    public getEURechnungArray():EURechnung[] {return this.getEURechnungTableCache().getRowArray();}
     public getOrCreateEinnahmenRechnung(id: string) { return this.getEinnahmenRechnungTableCache().getOrCreateRowById(id); }
     public getOffeneEinnahmenRechnungArray(): EinnahmenRechnung[] { return this.getEinnahmenRechnungArray().filter(rechnung => { return (rechnung.nichtBezahlt() && rechnung.getId() !== ""); }) }
     public getRechnungenFuerMonat(monat: string): EinnahmenRechnung[] {
@@ -236,8 +238,10 @@ class BusinessModel {
         this.getNormalisierteBuchungenTableCache().deleteAll();
         this.addToNormalisierteBuchungen(this.getUmbuchungenArray());
         this.addToNormalisierteBuchungen(this.getEinnahmenRechnungArray());
+        this.addToNormalisierteBuchungen(this.getEURechnungArray());
         this.addToNormalisierteBuchungen(this.getGutschriftenArray());   
         this.addToNormalisierteBuchungen(this.getAusgabenRechnungArray());
+        this.addToNormalisierteBuchungen(this.getAbschreibungenArray());
         this.addToNormalisierteBuchungen(this.getBewirtungsbelegeArray());
         this.addToNormalisierteBuchungen(this.getBankbuchungenArray());
     }
@@ -319,6 +323,7 @@ class BusinessModel {
         if (this.bankbuchungenTableCache !== undefined) this.bankbuchungenTableCache.save();
         if (this.umbuchungenTableCache !== undefined) this.umbuchungenTableCache.save();
         if (this.einnahmenRechnungTableCache !== undefined) this.einnahmenRechnungTableCache.save();
+        if (this.EURechnungTableCache !== undefined) this.EURechnungTableCache.save();
         if (this.gutschriftenTableCache !== undefined) this.gutschriftenTableCache.save();
         if (this.vertraegeTableCache !== undefined) this.vertraegeTableCache.save();
         if (this.normalisierteBuchungenTableCache !== undefined) this.normalisierteBuchungenTableCache.save();
@@ -326,6 +331,10 @@ class BusinessModel {
     private getEinnahmenRechnungTableCache(): EinnahmenRechnungTableCache {
         if (this.einnahmenRechnungTableCache === undefined) this.einnahmenRechnungTableCache = new EinnahmenRechnungTableCache(this.getRootFolderId());
         return this.einnahmenRechnungTableCache;
+    }
+    private getEURechnungTableCache():EURechnungTableCache {
+        if (this.EURechnungTableCache === undefined) this.EURechnungTableCache = new EURechnungTableCache(this.getRootFolderId());
+        return this.EURechnungTableCache;      
     }
     public getGutschriftenTableCache(): GutschriftenTableCache {
         if (this.gutschriftenTableCache === undefined) this.gutschriftenTableCache = new GutschriftenTableCache(this.getRootFolderId());
