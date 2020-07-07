@@ -239,6 +239,7 @@ class BusinessModel {
         this.addToNormalisierteBuchungen(this.getGutschriftenArray());   
         this.addToNormalisierteBuchungen(this.getAusgabenRechnungArray());
         this.addToNormalisierteBuchungen(this.getBewirtungsbelegeArray());
+        this.addToNormalisierteBuchungen(this.getBankbuchungenArray());
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {

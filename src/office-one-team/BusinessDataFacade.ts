@@ -277,7 +277,7 @@ class NormalisierteBuchungenTableCache extends TableCache{
     return super.getOrCreateRowById(id) as NormalisierteBuchung;
   }
 }
-//Abstrakte Fassaden für Buchungssätze
+//Abstrakte Fassaden für Buchungssätze ---------------------------------------------------------------------------------
 class FinanzAction extends TableRow {
   public getBetrag(): number { return this.getValue("Betrag"); }
   public setBetrag(value: number) { this.setValue("Betrag", value); }
@@ -294,6 +294,9 @@ class Buchung extends FinanzAction {
   public getLink(): string { return this.getFormula("Link"); }
   public setLink(link: string) { this.setFormula("Link", link); }
   public createLink(id: string, name: string) { this.setFormula("Link", "=HYPERLINK(\"https://drive.google.com/file/d/" + id + "\";\"" + name + "\")"); }
+  protected monat:number;
+  protected monatBezahlt:Number | "offen"="offen";
+
 }
 class Umbuchung extends Buchung {
   public getNettoBetragMitVorzeichen(){return this.getBetragMitVorzeichen()};
@@ -304,8 +307,6 @@ class Umbuchung extends Buchung {
   public setBezahltAm(datum: Date) { this.setValue("bezahlt am", datum); }
   public nichtBezahlt(): boolean { return this.getBezahltAm() === ""; }
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
-  protected monat:number;
-  protected monatBezahlt:Number | "offen"="offen";
   public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
     const quellTabelle = "Umbuchung";
     this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
@@ -356,6 +357,7 @@ class Rechnung extends Umbuchung {
 }
 //Fassade der Tabellen in Einnahmen
 class EinnahmenRechnung extends Rechnung {
+  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
   public getKonto(){return "Debitor:"+this.getValue("Name");}
   public getStatus() { return this.getValue("Status"); }
   public setStatus(value: any) { this.setValue("Status", value); }
@@ -425,6 +427,7 @@ class EinnahmenRechnung extends Rechnung {
 
 }
 class Gutschrift extends Rechnung {
+  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
   public getKonto(){return "Debitor:"+this.getValue("Name");}
   public getName() { return this.getValue("Name"); }
   public setName(value: string) { this.setValue("Name", value); }
@@ -528,15 +531,49 @@ class Vertrag extends Umbuchung {
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
   public getGegenkonto() { return this.getValue("Konto") };
 }
-class Bankbuchung extends Buchung {
+class Bankbuchung extends Umbuchung {
   public getKonto() { return this.getValue("Bilanzkonto") }
   public setKonto(value: string) { this.setValue("Bilanzkonto", value); }
+  public getBezahltAm(){return this.getDatum()};
   public getNr() { return this.getValue("Nr") }
   public setNr(value: string) { this.setValue("Nr", value); }
   public getBelegID() { return this.getValue("BelegID") }
   public setBelegID(value: string) { this.setValue("BelegID", value); }
   public getGegenkontoBank() { return this.getValue("GegenkontoBank") }
   public setGegenkontoBank(value: string) { this.setValue("GegenkontoBank", value); }
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+    const quellTabelle = "Bankbuchung";
+    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+
+    //Buchung auf Konto
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    normBuchung.setBetrag(-this.getBetrag());
+    normBuchung.setKonto(this.getKonto());
+   
+    //Buchung auf Gegenkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getBetrag());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+
+  }
+  protected copyFields(quellTabelle:string,normBuchung:NormalisierteBuchung){
+    let id = this.getBelegID();
+    if (id==="")id = this.getId();
+    normBuchung.setFileId(id);
+    normBuchung.setLink(this.getLink());
+    normBuchung.setDatum(this.getDatum());
+    normBuchung.setbezahltam(this.getDatum());
+    normBuchung.setText(this.getText());
+    normBuchung.setMonat(this.monat);
+    normBuchung.setMonatbezahlt(this.monatBezahlt);
+    normBuchung.setQuelltabelle(quellTabelle);
+  }
+
 }
 //Umbuchung gibt's schon
 //Fassade der Tabellen in Bilanz und GuV
@@ -607,8 +644,6 @@ class NormalisierteBuchung extends FinanzAction{
   public setQuelltabelle(value){this.setValue("Quelltabelle",value);}
 }
 
-function uid() { return Math.random.toString() }
-
 function belegMonat(geschaeftsjahr:Date,belegDatum:Date){
   if (belegDatum<geschaeftsjahr){
     var result = belegDatum.getFullYear()-geschaeftsjahr.getFullYear();
@@ -636,3 +671,6 @@ function bezahltMonat(geschaeftsjahr:Date,bezahltDatum:Date){
     return bezahltDatum.getMonth()+1;
   }
 }
+
+function uid() { return Math.random.toString() }
+
