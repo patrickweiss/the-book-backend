@@ -8,7 +8,7 @@ class TableCache {
   private tableName: string;
   private rowHashTable;
   private columnHashTable = {};
-  private rowArray;
+  private rowArray: TableRow[];
   constructor(rootId: string, tableName: string) {
     const data = DriveConnector.getNamedRangeData(rootId, tableName, oooVersion);
     this.dataArray = data[0];
@@ -22,7 +22,7 @@ class TableCache {
   public getData(){
     return[this.dataArray,this.backgroundArray,this.formulaArray];
   }
-  protected getRowHashTable() {
+  public getRowHashTable() {
     if (this.rowHashTable === undefined) {
       this.rowHashTable = {};
       for (var index in this.dataArray) {
@@ -204,6 +204,17 @@ class AbschreibungenTableCache extends TableCache {
     return super.getOrCreateRowById(id) as Abschreibung;
   }
 }
+class VerpflegungsmehraufwendungenTableCache extends TableCache {
+  constructor(rootId: string) {
+    super(rootId, "VerpflegungsmehraufwendungenD");
+  }
+  public getRowByIndex(rowIndex: string): Verpflegungsmehraufwendung {
+    return new Verpflegungsmehraufwendung(this, rowIndex) as Verpflegungsmehraufwendung;
+  }
+  public getOrCreateRowById(id: string): Verpflegungsmehraufwendung {
+    return super.getOrCreateRowById(id) as Verpflegungsmehraufwendung;
+  }
+}
 
 class EinnahmenRechnungTableCache extends TableCache {
   constructor(rootId: string) {
@@ -287,6 +298,19 @@ class NormalisierteBuchungenTableCache extends TableCache{
   public getOrCreateRowById(id: string): NormalisierteBuchung {
     return super.getOrCreateRowById(id) as NormalisierteBuchung;
   }
+  public kontenStammdatenAktualisieren(kontenTableCache:KontenTableCache){
+    const buchungen = this.getRowArray() as NormalisierteBuchung[];
+    buchungen.forEach( buchung => {
+      let konto:Konto = kontenTableCache.getRowHashTable()[buchung.getKonto()] as Konto;
+      if (!konto) konto = kontenTableCache.getOrCreateRowById(buchung.getKonto());
+      buchung.setKontentyp(konto.getKontentyp());
+      buchung.setSubtyp(konto.getSubtyp());
+      buchung.setGruppe(konto.getGruppe());
+      buchung.setSKR03(konto.getSKR03());
+      buchung.setFormular(konto.getFormular());
+      buchung.setZN(konto.getZN());    
+    })
+  }
 }
 //Abstrakte Fassaden für Buchungssätze ---------------------------------------------------------------------------------
 class FinanzAction extends TableRow {
@@ -368,6 +392,8 @@ class Rechnung extends Umbuchung {
 }
 
 class EURechnung extends Umbuchung{
+  public getBetragMitVorzeichen() { return this.getBetrag() };
+  public getBetrag() { return this.getValue("Rechnungsbetrag"); }
   public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
   public getKonto(){return "Leistung:"+this.getValue("USt-IdNr");}
 
@@ -584,6 +610,33 @@ class Abschreibung extends Umbuchung {
     normBuchung.setKonto(this.getGegenkonto());
  }
 }
+class Verpflegungsmehraufwendung extends Umbuchung {
+  public getBezahltAm(){return this.getDatum()};
+  public getBetrag() { return this.getValue("Verpflegungsmehr-aufwendung"); }  
+  public getKonto() {return "Verpflegungsmehraufwendung"};
+  public getGegenkonto() {return "bar"};
+  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+    const quellTabelle = "Verpflegungsmehraufwendung";
+    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
+    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+
+    //Buchung auf Konto
+    let normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    normBuchung.setBetrag(-this.getBetrag());
+    normBuchung.setKonto(this.getKonto());
+   
+    //Buchung auf Gegenkonto
+    normBuchung = tableCache.createNewRow();
+    this.copyFields(quellTabelle,normBuchung);
+    //Vorzeichen wechseln
+    normBuchung.setBetrag(this.getBetrag());
+    //Konto wechseln
+    normBuchung.setKonto(this.getGegenkonto());
+ }
+}
+
+
 //Fassade der Tabellen in Bankbuchungen
 class Vertrag extends Umbuchung {
   public getBezahltAm() { return ""; }
@@ -595,6 +648,11 @@ class Vertrag extends Umbuchung {
 class Bankbuchung extends Umbuchung {
   public getKonto() { return this.getValue("Bilanzkonto") }
   public setKonto(value: string) { this.setValue("Bilanzkonto", value); }
+  public getGegenkonto(){
+    let gegenkonto = super.getGegenkonto();
+    if (gegenkonto==="")gegenkonto = "nicht zugeordnet";
+    return gegenkonto;
+  }
   public getBezahltAm(){return this.getDatum()};
   public getNr() { return this.getValue("Nr") }
   public setNr(value: string) { this.setValue("Nr", value); }
@@ -639,7 +697,7 @@ class Bankbuchung extends Umbuchung {
 //Umbuchung gibt's schon
 //Fassade der Tabellen in Bilanz und GuV
 class Konto extends TableRow {
-  public getId() { return this.getValue("Konto").toString(); }
+  public getId() { return this.getValue("Konto"); }
   public setId(value: string) { this.setValue("Konto", value); }
   public getKontentyp() { return this.getValue("Kontentyp"); }
   public setKontentyp(value: any) { this.setValue("Kontentyp", value); }
