@@ -19,8 +19,8 @@ class TableCache {
     this.rootId = rootId;
     this.tableName = tableName;
   }
-  public getData(){
-    return[this.dataArray,this.backgroundArray,this.formulaArray];
+  public getData() {
+    return [this.dataArray, this.backgroundArray, this.formulaArray];
   }
   public getRowHashTable() {
     if (this.rowHashTable === undefined) {
@@ -33,7 +33,7 @@ class TableCache {
     }
     return this.rowHashTable;
   }
-  public getOrCreateHashTable(columnName: string):Object {
+  public getOrCreateHashTable(columnName: string): Object {
     if (this.columnHashTable[columnName] === undefined) {
       this.columnHashTable[columnName] = {};
       for (let index in this.dataArray) {
@@ -43,7 +43,7 @@ class TableCache {
         }
       }
     }
-    return  this.columnHashTable[columnName]
+    return this.columnHashTable[columnName]
   }
   protected addRowToHash(tableRow: TableRow) {
     this.rowHashTable[tableRow.getId()] = tableRow;
@@ -71,14 +71,14 @@ class TableCache {
     tableRow.setId(this.dataArray[0][0].toString());
     delete this.rowHashTable;
     delete this.columnHashTable;
-    this.columnHashTable={};
+    this.columnHashTable = {};
     if (this.rowArray) delete this.rowArray;
     this.getRowHashTable();
-    this.dataArray[0][0] = this.dataArray[0][0].toString().substr(0, 6) + padToFive(parseInt(this.dataArray[0][0].toString().substr(6, 5),10) + 1);
+    this.dataArray[0][0] = this.dataArray[0][0].toString().substr(0, 6) + padToFive(parseInt(this.dataArray[0][0].toString().substr(6, 5), 10) + 1);
     return tableRow;
   }
   public getOrCreateRowById(id: string): TableRow {
-    if (id === "") throw new Error("Empty string is not allowed as id:"+ this.tableName+ new Error().stack);
+    if (id === "") throw new Error("Empty string is not allowed as id:" + this.tableName + new Error().stack);
     let tableRow = this.getRowHashTable()[id];
     if (tableRow === undefined) {
       let newDataArray = Array.apply(null, Array(this.dataArray[0].length)).map(String.prototype.valueOf, "")
@@ -98,7 +98,7 @@ class TableCache {
   public save() {
     DriveConnector.saveNamedRangeData(this.rootId, this.tableName, this.loadRowCount, this.dataArray, this.backgroundArray, this.formulaArray);
   }
-  public deleteAll(){
+  public deleteAll() {
     this.dataArray = [this.dataArray[0]];
     this.formulaArray = [this.formulaArray[0]];
     this.backgroundArray = [this.backgroundArray[0]];
@@ -135,12 +135,12 @@ class TableRow {
         return this.getDateString(new Date(value));
       } else if (columnName === "ID" || columnName === "Nr") return value.substr(0, 5); else return value.substr(0, 20);
     }
-    if (value instanceof Date){
+    if (value instanceof Date) {
       return this.getDateString(new Date(value));
     }
-    return  value.toFixed(2).replace(".",",");
+    return value.toFixed(2).replace(".", ",");
   }
-  protected setValue(columnName: string, value: string | number | Date) {
+  public setValue(columnName: string, value: string | number | Date) {
     this.tableCache.dataArray[this.index][this.tableCache.columnIndex[columnName]] = value;
   }
   public getValue(columnName: string) {
@@ -255,7 +255,7 @@ class BankbuchungenTableCache extends TableCache {
   constructor(rootId: string) {
     super(rootId, "BankbuchungenD");
   }
-  public createNewRow():Bankbuchung {return super.createNewRow() as Bankbuchung; }
+  public createNewRow(): Bankbuchung { return super.createNewRow() as Bankbuchung; }
   public getRowByIndex(rowIndex: string): Bankbuchung {
     return new Bankbuchung(this, rowIndex) as Bankbuchung;
   }
@@ -276,6 +276,7 @@ class UmbuchungenTableCache extends TableCache {
   }
 }
 class KontenTableCache extends TableCache {
+  private kontenSpalten: Object;
   constructor(rootId: string) {
     super(rootId, "KontenD");
   }
@@ -285,9 +286,126 @@ class KontenTableCache extends TableCache {
   public getOrCreateRowById(kontoName: string): Konto {
     return super.getOrCreateRowById(kontoName) as Konto;
   }
+  public setKontenSpalten(geschaeftsjahr: number) {
+    this.kontenSpalten = {
+      "1": "Januar",
+      "2": "Februar",
+      "3": "März",
+      "4": "April",
+      "5": "Mai",
+      "6": "Juni",
+      "7": "Juli",
+      "8": "August",
+      "9": "September",
+      "10": "Oktober",
+      "11": "November",
+      "12": "Dezember",
+      "-1": (geschaeftsjahr - 1).toString(),
+      "-2": (geschaeftsjahr - 2).toString(),
+      "-3": (geschaeftsjahr - 3).toString(),
+      "-4": "Vorjahre",
+      "13": (geschaeftsjahr + 1).toString(),
+    };
+  }
+  public getKontenSpalten(): Object {
+    return this.kontenSpalten;
+  }
+  public bilanzSummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[]) {
+    //Alle Kontensummen und -daten löschen
+    for (let zeile in this.dataArray) {
+      if (zeile !== "0") {
+        let konto = this.getRowByIndex(zeile);
+        konto.setValue("Erste Buchung", "-");
+        konto.setValue("Betrag", "-");
+        konto.setValue("Vorjahre", "-");
+        for (let spalte in this.getKontenSpalten()) {
+          konto.setValue(this.getKontenSpalten()[spalte], "-");
+        }
+        konto.setValue("Summe", "-");
+      }
+    }
 
+    //Kontenspalte befüllen
+    for (let buchungRow of normalisierteBuchungen) {
+      let kontoRow = this.getOrCreateRowById(buchungRow.getKonto());
+      //Kontenspalte befüllen
+      let monat: string = buchungRow.getMonat().toString();
+      let kontenSpalte = this.getKontenSpalten()[monat];
+      //Beträge summieren
+      var aktuellerBetrag = Number(buchungRow.getValue("Betrag"));
+      var aktuelleSumme = Number(kontoRow.getValue(kontenSpalte));
+      if (isNaN(aktuelleSumme)) aktuelleSumme = 0;
+      kontoRow.setValue(kontenSpalte, aktuellerBetrag + aktuelleSumme);
+      var gesamtSumme = Number(kontoRow.getValue("Summe"));
+      if (isNaN(gesamtSumme)) gesamtSumme = 0;
+      //für GuV Konten werden nur die Monate 1-12 in der Summe berücksichtigt
+      if (kontoRow.getValue("Kontentyp") == "GuV") {
+        if (parseInt(monat) > 0 && parseInt(monat) < 13 && monat != "") kontoRow.setValue("Summe", aktuellerBetrag + gesamtSumme);
+      } else
+        if (monat != "13") kontoRow.setValue("Summe", aktuellerBetrag + gesamtSumme);
+    }
+
+  }
 }
-class NormalisierteBuchungenTableCache extends TableCache{
+class EURTableCache extends TableCache {
+  private kontenSpalten: Object;
+  constructor(rootId: string) {
+    super(rootId, "EÜRD");
+  }
+  public getRowByIndex(rowIndex: string): EUR {
+    return new EUR(this, rowIndex) as EUR;
+  }
+  public getOrCreateRowById(ZN: string): EUR {
+    return super.getOrCreateRowById(ZN) as EUR;
+  }
+  public setKontenSpalten(geschaeftsjahr: number) {
+    this.kontenSpalten = {
+      "1": "Januar",
+      "2": "Februar",
+      "3": "März",
+      "4": "April",
+      "5": "Mai",
+      "6": "Juni",
+      "7": "Juli",
+      "8": "August",
+      "9": "September",
+      "10": "Oktober",
+      "11": "November",
+      "12": "Dezember",
+      "-1": (geschaeftsjahr - 1).toString(),
+      "-2": (geschaeftsjahr - 2).toString(),
+      "-3": (geschaeftsjahr - 3).toString(),
+      "-4": "Vorjahre",
+      "13": (geschaeftsjahr + 1).toString(),
+    };
+  }
+  public getKontenSpalten(): Object {
+    return this.kontenSpalten;
+  }
+  public eurSummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[]) {
+    this.deleteAll();
+    //ZN spalte befüllen
+    for (let buchungRow of normalisierteBuchungen) {
+      let znRow = this.getOrCreateRowById(buchungRow.getZN());
+      //Kontenspalte befüllen
+      let monat: string = buchungRow.getMonatbezahlt().toString();
+      if (monat !== "") {
+        let kontenSpalte = this.getKontenSpalten()[monat];
+        //Beträge summieren
+        let aktuellerBetrag = Number(buchungRow.getValue("Betrag"));
+        let aktuelleSumme = Number(znRow.getValue(kontenSpalte));
+        if (isNaN(aktuelleSumme)) aktuelleSumme = 0;
+        znRow.setValue(kontenSpalte, aktuellerBetrag + aktuelleSumme);
+        let gesamtSumme = Number(znRow.getValue("Summe"));
+        if (isNaN(gesamtSumme)) gesamtSumme = 0;
+        if (parseInt(monat) > 0 && parseInt(monat) < 13) znRow.setValue("Summe", aktuellerBetrag + gesamtSumme);
+      }
+    }
+  }
+}
+
+
+class NormalisierteBuchungenTableCache extends TableCache {
   constructor(rootId: string) {
     super(rootId, "BuchungenD");
   }
@@ -298,17 +416,17 @@ class NormalisierteBuchungenTableCache extends TableCache{
   public getOrCreateRowById(id: string): NormalisierteBuchung {
     return super.getOrCreateRowById(id) as NormalisierteBuchung;
   }
-  public kontenStammdatenAktualisieren(kontenTableCache:KontenTableCache){
+  public kontenStammdatenAktualisieren(kontenTableCache: KontenTableCache) {
     const buchungen = this.getRowArray() as NormalisierteBuchung[];
-    buchungen.forEach( buchung => {
-      let konto:Konto = kontenTableCache.getRowHashTable()[buchung.getKonto()] as Konto;
+    buchungen.forEach(buchung => {
+      let konto: Konto = kontenTableCache.getRowHashTable()[buchung.getKonto()] as Konto;
       if (!konto) konto = kontenTableCache.getOrCreateRowById(buchung.getKonto());
       buchung.setKontentyp(konto.getKontentyp());
       buchung.setSubtyp(konto.getSubtyp());
       buchung.setGruppe(konto.getGruppe());
       buchung.setSKR03(konto.getSKR03());
       buchung.setFormular(konto.getFormular());
-      buchung.setZN(konto.getZN());    
+      buchung.setZN(konto.getZN());
     })
   }
 }
@@ -318,7 +436,7 @@ class FinanzAction extends TableRow {
   public setBetrag(value: number) { this.setValue("Betrag", value); }
   public getDatum() { return new Date(this.getValue("Datum")); }
   public setDatum(value: any) { this.setValue("Datum", value); }
-  public getKonto():string { return this.getValue("Konto") }
+  public getKonto(): string { return this.getValue("Konto") }
   public setKonto(value: string) { this.setValue("Konto", value); }
   public getText() { return this.getValue("Text"); }
   public setText(text: string) { this.setValue("Text", text); }
@@ -329,12 +447,12 @@ class Buchung extends FinanzAction {
   public getLink(): string { return this.getFormula("Link"); }
   public setLink(link: string) { this.setFormula("Link", link); }
   public createLink(id: string, name: string) { this.setFormula("Link", "=HYPERLINK(\"https://drive.google.com/file/d/" + id + "\";\"" + name + "\")"); }
-  protected monat:number;
-  protected monatBezahlt:Number | "offen"="offen";
+  protected monat: number;
+  protected monatBezahlt: Number | "offen" = "offen";
 
 }
 class Umbuchung extends Buchung {
-  public getNettoBetragMitVorzeichen(){return this.getBetragMitVorzeichen()};
+  public getNettoBetragMitVorzeichen() { return this.getBetragMitVorzeichen() };
   public getBetragMitVorzeichen() { return -this.getBetrag() };
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
@@ -342,28 +460,28 @@ class Umbuchung extends Buchung {
   public setBezahltAm(datum: Date) { this.setValue("bezahlt am", datum); }
   public nichtBezahlt(): boolean { return this.getBezahltAm() === ""; }
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
     const quellTabelle = "Umbuchung";
-    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    if (this.monat ===null)this.monat = Number.NaN;
-    if (this.getBezahltAm()!=="offen")this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+    this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
+    if (this.monat === null) this.monat = Number.NaN;
+    if (this.getBezahltAm() !== "offen") this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getBezahltAm());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(this.getNettoBetragMitVorzeichen());
     normBuchung.setKonto(this.getKonto());
-   
+
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getNettoBetragMitVorzeichen());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
 
   }
-  protected copyFields(quellTabelle:string,normBuchung:NormalisierteBuchung){
+  protected copyFields(quellTabelle: string, normBuchung: NormalisierteBuchung) {
     normBuchung.setFileId(this.getId());
     normBuchung.setLink(this.getLink());
     normBuchung.setDatum(this.getDatum());
@@ -382,7 +500,7 @@ class Rechnung extends Umbuchung {
   public getBetrag() { return this.getValue("brutto Betrag"); }
   public setBetrag(value: any) { this.setValue("brutto Betrag", value); }
   public getBetragMitVorzeichen() { return this.getBetrag() };
-  public getNettoBetragMitVorzeichen(){return this.getNettoBetrag()};
+  public getNettoBetragMitVorzeichen() { return this.getNettoBetrag() };
   public getNettoBetrag() { return this.getValue("netto Betrag"); }
   public setNettoBetrag(betrag: number) { this.setValue("netto Betrag", betrag); }
   public getMehrwertsteuer() { return this.getValue("Summe Umsatzsteuer"); }
@@ -391,27 +509,27 @@ class Rechnung extends Umbuchung {
   public setDateiTyp(dateityp: string) { this.setValue("Dateityp", dateityp); }
 }
 
-class EURechnung extends Umbuchung{
+class EURechnung extends Umbuchung {
   public getBetragMitVorzeichen() { return this.getBetrag() };
   public getBetrag() { return this.getValue("Rechnungsbetrag"); }
-  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
-  public getKonto(){return "Leistung:"+this.getValue("USt-IdNr");}
+  public getText() { return this.getKonto() + " " + this.getNettoBetragMitVorzeichen() + " €" }
+  public getKonto() { return "Leistung:" + this.getValue("USt-IdNr"); }
 
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
     const quellTabelle = "EURechnung";
-    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    if (this.monat ===null)this.monat = Number.NaN;
-    if (this.getBezahltAm()!=="offen")this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getBezahltAm());
+    this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
+    if (this.monat === null) this.monat = Number.NaN;
+    if (this.getBezahltAm() !== "offen") this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getBezahltAm());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(this.getNettoBetragMitVorzeichen());
     normBuchung.setKonto(this.getKonto());
-   
+
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getNettoBetragMitVorzeichen());
     //Konto wechseln
@@ -422,8 +540,8 @@ class EURechnung extends Umbuchung{
 }
 //Fassade der Tabellen in Einnahmen
 class EinnahmenRechnung extends Rechnung {
-  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
-  public getKonto(){return "Leistung:"+this.getValue("Name");}
+  public getText() { return this.getKonto() + " " + this.getNettoBetragMitVorzeichen() + " €" }
+  public getKonto() { return "Leistung:" + this.getValue("Name"); }
   public getStatus() { return this.getValue("Status"); }
   public setStatus(value: any) { this.setValue("Status", value); }
   public getRechnungsNr() { return this.getValue("Rechnungs-Nr"); }
@@ -470,31 +588,31 @@ class EinnahmenRechnung extends Rechnung {
   public setDokumententyp(value: any) { this.setValue("Dokumententyp", value); }
   public getZahlungsziel() { return this.getValue("Zahlungsziel"); }
   public setZahlungsziel(value: any) { this.setValue("Zahlungsziel", value); }
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
-    super.addToTableCache(tableCache,geschaeftsjahr);
-  
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
+    super.addToTableCache(tableCache, geschaeftsjahr);
+
     //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung",normBuchung);
+    this.copyFields("Rechnung", normBuchung);
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("USt. in Rechnung gestellt");
-  
+
     //Buchung Mehrwertsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung",normBuchung);
+    this.copyFields("Rechnung", normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
-  
+
   }
 
 }
 
 class Gutschrift extends Rechnung {
-  public getText(){return this.getKonto()+" "+this.getNettoBetragMitVorzeichen()+" €"}
-  public getKonto(){return "Debitor:"+this.getValue("Name");}
+  public getText() { return this.getKonto() + " " + this.getNettoBetragMitVorzeichen() + " €" }
+  public getKonto() { return "Debitor:" + this.getValue("Name"); }
   public getName() { return this.getValue("Name"); }
   public setName(value: string) { this.setValue("Name", value); }
   public getStatus() { return this.getValue("Status"); }
@@ -505,24 +623,24 @@ class Gutschrift extends Rechnung {
   public setBetrag(value: any) { this.setValue("Gutschriftbetrag", value); }
   public getDokumententyp() { return this.getValue("Dokumententyp"); }
   public setDokumententyp(value: any) { this.setValue("Dokumententyp", value); }
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
-    super.addToTableCache(tableCache,geschaeftsjahr);
-  
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
+    super.addToTableCache(tableCache, geschaeftsjahr);
+
     //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung",normBuchung);
+    this.copyFields("Rechnung", normBuchung);
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("USt. in Rechnung gestellt");
-  
+
     //Buchung Mehrwertsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung",normBuchung);
+    this.copyFields("Rechnung", normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
-  
+
   }
 
 }
@@ -531,34 +649,34 @@ class AusgabenRechnung extends Rechnung {
   public getMehrwertsteuer() { return this.getValue("Vorsteuer"); }
   public setMehrwertsteuer(betrag: number) { this.setValue("Vorsteuer", betrag); }
   public getBetragMitVorzeichen() { return -this.getBetrag() };
-  public getNettoBetragMitVorzeichen(){return -this.getNettoBetrag()};
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
-    super.addToTableCache(tableCache,geschaeftsjahr);
+  public getNettoBetragMitVorzeichen() { return -this.getNettoBetrag() };
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
+    super.addToTableCache(tableCache, geschaeftsjahr);
 
     //Buchung Vorsteuer auf Vorsteuer
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Ausgabe",normBuchung);
+    this.copyFields("Ausgabe", normBuchung);
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("Vorsteuer");
 
     //Buchung Vorsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Ausgabe",normBuchung);
+    this.copyFields("Ausgabe", normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
-  
+
   }
 
 }
 class Bewirtungsbeleg extends AusgabenRechnung {
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
-  public getKonto(){return"abziehbare Bewirtungskosten"};
-  public getNettoBetragMitVorzeichen(){return -this.getAbziehbareBewirtungskosten()}; 
+  public getKonto() { return "abziehbare Bewirtungskosten" };
+  public getNettoBetragMitVorzeichen() { return -this.getAbziehbareBewirtungskosten() };
 
   public getTrinkgeld() { return this.getValue("Trinkgeld"); }
   public setTrinkgeld(betrag: number) { this.setValue("Trinkgeld", betrag); }
@@ -566,74 +684,74 @@ class Bewirtungsbeleg extends AusgabenRechnung {
   public setAbziehbareBewirtungskosten(value: any) { this.setValue("abziehbare Bewirtungskosten", value); }
   public getNichtAbziehbareBewirtungskosten() { return this.getValue("nicht abziehbare Bewirtungskosten"); }
   public setNichtAbziehbareBewirtungskosten(value: any) { this.setValue("nicht abziehbare Bewirtungskosten", value); }
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache,geschaeftsjahr:Date){
-    super.addToTableCache(tableCache,geschaeftsjahr);
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
+    super.addToTableCache(tableCache, geschaeftsjahr);
 
     //Buchung nicht abziehbare Bewirtungskosten
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Bewirtungsbeleg",normBuchung);
+    this.copyFields("Bewirtungsbeleg", normBuchung);
     normBuchung.setBetrag(-this.getNichtAbziehbareBewirtungskosten());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("nicht abziehbare Bewirtungskosten");
 
     //Buchung nicht abziehbare Bewirtungskosten auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Bewirtungsbeleg",normBuchung);
+    this.copyFields("Bewirtungsbeleg", normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getNichtAbziehbareBewirtungskosten());
     //Kontenstammdaten werden später ergänzt
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
-  
+
   }
 
 }
 class Abschreibung extends Umbuchung {
-  public getBezahltAm(){return this.getDatum()};
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+  public getBezahltAm() { return this.getDatum() };
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
     const quellTabelle = "Abschreibung";
-    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+    this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
+    this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getDatum());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(-this.getBetrag());
     normBuchung.setKonto(this.getKonto());
-   
+
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getBetrag());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
- }
+  }
 }
 class Verpflegungsmehraufwendung extends Umbuchung {
-  public getBezahltAm(){return this.getDatum()};
-  public getBetrag() { return this.getValue("Verpflegungsmehr-aufwendung"); }  
-  public getKonto() {return "Verpflegungsmehraufwendung"};
-  public getGegenkonto() {return "bar"};
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+  public getBezahltAm() { return this.getDatum() };
+  public getBetrag() { return this.getValue("Verpflegungsmehr-aufwendung"); }
+  public getKonto() { return "Verpflegungsmehraufwendung" };
+  public getGegenkonto() { return "bar" };
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
     const quellTabelle = "Verpflegungsmehraufwendung";
-    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+    this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
+    this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getDatum());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(-this.getBetrag());
     normBuchung.setKonto(this.getKonto());
-   
+
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getBetrag());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
- }
+  }
 }
 
 
@@ -648,41 +766,41 @@ class Vertrag extends Umbuchung {
 class Bankbuchung extends Umbuchung {
   public getKonto() { return this.getValue("Bilanzkonto") }
   public setKonto(value: string) { this.setValue("Bilanzkonto", value); }
-  public getGegenkonto(){
+  public getGegenkonto() {
     let gegenkonto = super.getGegenkonto();
-    if (gegenkonto==="")gegenkonto = "nicht zugeordnet";
+    if (gegenkonto === "") gegenkonto = "nicht zugeordnet";
     return gegenkonto;
   }
-  public getBezahltAm(){return this.getDatum()};
+  public getBezahltAm() { return this.getDatum() };
   public getNr() { return this.getValue("Nr") }
   public setNr(value: string) { this.setValue("Nr", value); }
   public getBelegID() { return this.getValue("BelegID") }
   public setBelegID(value: string) { this.setValue("BelegID", value); }
   public getGegenkontoBank() { return this.getValue("GegenkontoBank") }
   public setGegenkontoBank(value: string) { this.setValue("GegenkontoBank", value); }
-  public addToTableCache(tableCache:NormalisierteBuchungenTableCache, geschaeftsjahr:Date){
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
     const quellTabelle = "Bankbuchung";
-    this.monat = belegMonat(geschaeftsjahr,this.getValue("Datum"));
-    this.monatBezahlt=bezahltMonat(geschaeftsjahr,this.getDatum());
+    this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
+    this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getDatum());
 
     //Buchung auf Konto
     let normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(-this.getBetrag());
     normBuchung.setKonto(this.getKonto());
-   
+
     //Buchung auf Gegenkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields(quellTabelle,normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getBetrag());
     //Konto wechseln
     normBuchung.setKonto(this.getGegenkonto());
 
   }
-  protected copyFields(quellTabelle:string,normBuchung:NormalisierteBuchung){
+  protected copyFields(quellTabelle: string, normBuchung: NormalisierteBuchung) {
     let id = this.getBelegID();
-    if (id==="")id = this.getId();
+    if (id === "") id = this.getId();
     normBuchung.setFileId(id);
     normBuchung.setLink(this.getLink());
     normBuchung.setDatum(this.getDatum());
@@ -724,70 +842,108 @@ class Konto extends TableRow {
   public isBankkonto(): boolean { return this.getGruppe() === "Bankkonto"; }
   public getSumme() { return this.getValue("Summe"); }
   public getDefaultMwSt() { return this.getGruppe().split(",")[1]; }
+
+}
+class UStVAD extends TableRow{
+  public getUs202000001(){return this.getValue("Us202000001");}
+  public setUs202000001(value){this.setValue("Us202000001",value);}
+  public getID(){return this.getValue("ID");}
+  public setID(value){this.setValue("ID",value);}
+  public getLink(){return this.getValue("Link");}
+  public setLink(value){this.setValue("Link",value);}
+  public getDatum(){return this.getValue("Datum");}
+  public setDatum(value){this.setValue("Datum",value);}
+  public getKonto(){return this.getValue("Konto");}
+  public setKonto(value){this.setValue("Konto",value);}
+  public getBetrag(){return this.getValue("Betrag");}
+  public setBetrag(value){this.setValue("Betrag",value);}
+  public getGegenkonto(){return this.getValue("Gegenkonto");}
+  public setGegenkonto(value){this.setValue("Gegenkonto",value);}
+  public getbezahltam(){return this.getValue("bezahlt am");}
+  public setbezahltam(value){this.setValue("bezahlt am",value);}
+  public getPeriodeundStatus(){return this.getValue("Periode und Status");}
+  public setPeriodeundStatus(value){this.setValue("Periode und Status",value);}
+  public geterstelltam(){return this.getValue("erstellt am");}
+  public seterstelltam(value){this.setValue("erstellt am",value);}
+  public get21(){return this.getValue("21");}
+  public set21(value){this.setValue("21",value);}
+  public get81(){return this.getValue("81");}
+  public set81(value){this.setValue("81",value);}
+  public get66(){return this.getValue("66");}
+  public set66(value){this.setValue("66",value);}
+  public get83(){return this.getValue("83");}
+  public set83(value){this.setValue("83",value);}
 }
 
-class NormalisierteBuchung extends FinanzAction{
+class EUR extends TableRow {
+  public getId() { return this.getValue("ZN"); }
+  public setId(value: string) { this.setValue("ZN", value); }
+  public getZN() { return this.getValue("ZN"); }
+  public setZN(value) { this.setValue("ZN", value); }
+  public getSumme() { return this.getValue("Summe"); }
+  public setSumme(value) { this.setValue("Summe", value); }
+}
+
+class NormalisierteBuchung extends FinanzAction {
   public getFileId() { return this.getValue("ID"); }
   public setFileId(value: string) { this.setValue("ID", value); }
   public getLink(): string { return this.getFormula("Link"); }
   public setLink(link: string) { this.setFormula("Link", link); }
   //public getDatum(){return this.getValue("Datum");}
   //public setDatum(value){this.setValue("Datum",value);}
-  public getbezahltam(){return this.getValue("bezahlt am");}
-  public setbezahltam(value){this.setValue("bezahlt am",value);}
+  public getbezahltam() { return this.getValue("bezahlt am"); }
+  public setbezahltam(value) { this.setValue("bezahlt am", value); }
   //public getBetrag(){return this.getValue("Betrag");}
   //public setBetrag(value){this.setValue("Betrag",value);}
   //public getText(){return this.getValue("Text");}
   //public setText(value){this.setValue("Text",value);}
-  public getMonat(){return this.getValue("Monat");}
-  public setMonat(value){this.setValue("Monat",value);}
-  public getMonatbezahlt(){return this.getValue("Monat bezahlt");}
-  public setMonatbezahlt(value){this.setValue("Monat bezahlt",value);}
-  public getKontentyp(){return this.getValue("Kontentyp");}
-  public setKontentyp(value){this.setValue("Kontentyp",value);}
-  public getSubtyp(){return this.getValue("Subtyp");}
-  public setSubtyp(value){this.setValue("Subtyp",value);}
-  public getGruppe(){return this.getValue("Gruppe");}
-  public setGruppe(value){this.setValue("Gruppe",value);}
+  public getMonat() { return this.getValue("Monat"); }
+  public setMonat(value) { this.setValue("Monat", value); }
+  public getMonatbezahlt() { return this.getValue("Monat bezahlt"); }
+  public setMonatbezahlt(value) { this.setValue("Monat bezahlt", value); }
+  public getKontentyp() { return this.getValue("Kontentyp"); }
+  public setKontentyp(value) { this.setValue("Kontentyp", value); }
+  public getSubtyp() { return this.getValue("Subtyp"); }
+  public setSubtyp(value) { this.setValue("Subtyp", value); }
+  public getGruppe() { return this.getValue("Gruppe"); }
+  public setGruppe(value) { this.setValue("Gruppe", value); }
   //Das ist wahrscheinlich falsch, Tabellenspalte muss semantisch "Konto" heißen
   //kann ich umstellen, wenn der ganze Code auf TS migriert ist
-  public getKonto(){return this.getValue("Gegenkonto");}
-  public setKonto(value){this.setValue("Gegenkonto",value);}
-  public getSKR03(){return this.getValue("SKR03");}
-  public setSKR03(value){this.setValue("SKR03",value);}
-  public getFormular(){return this.getValue("Formular");}
-  public setFormular(value){this.setValue("Formular",value);}
-  public getZN(){return this.getValue("ZN");}
-  public setZN(value){this.setValue("ZN",value);}
-  public getQuelltabelle(){return this.getValue("Quelltabelle");}
-  public setQuelltabelle(value){this.setValue("Quelltabelle",value);}
+  public getKonto() { return this.getValue("Gegenkonto"); }
+  public setKonto(value) { this.setValue("Gegenkonto", value); }
+  public getSKR03() { return this.getValue("SKR03"); }
+  public setSKR03(value) { this.setValue("SKR03", value); }
+  public getFormular() { return this.getValue("Formular"); }
+  public setFormular(value) { this.setValue("Formular", value); }
+  public getZN() { return this.getValue("ZN"); }
+  public setZN(value) { this.setValue("ZN", value); }
+  public getQuelltabelle() { return this.getValue("Quelltabelle"); }
+  public setQuelltabelle(value) { this.setValue("Quelltabelle", value); }
 }
 
-function belegMonat(geschaeftsjahr:Date,belegDatum:Date){
-  if (belegDatum<geschaeftsjahr){
-    var result = belegDatum.getFullYear()-geschaeftsjahr.getFullYear();
+function belegMonat(geschaeftsjahr: Date, belegDatum: Date) {
+  if (belegDatum < geschaeftsjahr) {
+    var result = belegDatum.getFullYear() - geschaeftsjahr.getFullYear();
     if (result < -4) result = -4;
     return result;
-  } else 
-   {
-    if (belegDatum.getFullYear()-geschaeftsjahr.getFullYear()>0) return 13;
-    return belegDatum.getMonth()+1;
+  } else {
+    if (belegDatum.getFullYear() - geschaeftsjahr.getFullYear() > 0) return 13;
+    return belegDatum.getMonth() + 1;
   }
 
 }
 
-function bezahltMonat(geschaeftsjahr:Date,bezahltDatum:Date){
-  if (bezahltDatum==undefined)return "offen";
-  if (!(bezahltDatum instanceof Date))return "offen";
-  if (bezahltDatum<geschaeftsjahr){
-    var result = bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear();
+function bezahltMonat(geschaeftsjahr: Date, bezahltDatum: Date) {
+  if (bezahltDatum == undefined) return "offen";
+  if (!(bezahltDatum instanceof Date)) return "offen";
+  if (bezahltDatum < geschaeftsjahr) {
+    var result = bezahltDatum.getFullYear() - geschaeftsjahr.getFullYear();
     if (result < -4) result = -4;
     return result;
   }
-  else 
-  {
-    if (bezahltDatum.getFullYear()-geschaeftsjahr.getFullYear()>0) return 13;
-    return bezahltDatum.getMonth()+1;
+  else {
+    if (bezahltDatum.getFullYear() - geschaeftsjahr.getFullYear() > 0) return 13;
+    return bezahltDatum.getMonth() + 1;
   }
 }
 

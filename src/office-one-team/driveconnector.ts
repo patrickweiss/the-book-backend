@@ -15,6 +15,8 @@ class DriveConnector {
       VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0048",
       "VerträgeD": "2 Ausgaben erfassen - Version:0048",
       KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
+      UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
+      EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0048",
@@ -156,7 +158,7 @@ class DriveConnector {
 
 
 function generateAndMailTableRow() {
-  let namedRange = "BuchungenD";
+  let namedRange = "EÜRD";
   let columnArray = DriveConnector.getNamedRangeData("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt", namedRange, oooVersion)[0][0];
   let getterAndSetter = "";
   columnArray.forEach(column => {

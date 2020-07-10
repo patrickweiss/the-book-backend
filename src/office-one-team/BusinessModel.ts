@@ -46,6 +46,7 @@ class BusinessModel {
     private bankbuchungenTableCache: BankbuchungenTableCache;
     private umbuchungenTableCache: UmbuchungenTableCache;
     private kontenTableCache: KontenTableCache;
+    private eurTableCache: EURTableCache;
     public normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
     //Server specific code
     constructor(rootfolderId: string) { this.rootFolderId = rootfolderId; }
@@ -249,7 +250,10 @@ class BusinessModel {
         this.addToNormalisierteBuchungen(this.getVerpflegungsmehraufwendungenArray());
         this.addToNormalisierteBuchungen(this.getBankbuchungenArray());
         this.getNormalisierteBuchungenTableCache().kontenStammdatenAktualisieren(this.getKontenTableCache());
-
+        this.getKontenTableCache().setKontenSpalten(this.endOfYear().getFullYear());
+        this.getKontenTableCache().bilanzSummenAktualisieren(this.getNormalisierteBuchungenArray());
+        this.getEURTableCache().setKontenSpalten(this.endOfYear().getFullYear());
+        this.getEURTableCache().eurSummenAktualisieren(this.getNormalisierteBuchungenArray());
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
@@ -325,6 +329,7 @@ class BusinessModel {
         if (this.ausgabenTableCache !== undefined) this.ausgabenTableCache.save();
         if (this.bewirtungsbelegeTableCache !== undefined) this.bewirtungsbelegeTableCache.save();
         if (this.kontenTableCache !== undefined) this.kontenTableCache.save();
+        if (this.eurTableCache !== undefined) this.eurTableCache.save();
         if (this.abschreibungenTableCache !== undefined) this.abschreibungenTableCache.save();
         if (this.verpflegungsmehraufwendungenTableCache!== undefined) this.verpflegungsmehraufwendungenTableCache.save();
         if (this.bankbuchungenTableCache !== undefined) this.bankbuchungenTableCache.save();
@@ -379,6 +384,11 @@ class BusinessModel {
         if (this.kontenTableCache === undefined) this.kontenTableCache = new KontenTableCache(this.getRootFolderId());
         return this.kontenTableCache;
     }
+    private getEURTableCache(): EURTableCache {
+        if (this.eurTableCache === undefined) this.eurTableCache = new EURTableCache(this.getRootFolderId());
+        return this.eurTableCache;
+    }
+    
     public getNormalisierteBuchungenTableCache(): NormalisierteBuchungenTableCache {
         if (this.normalisierteBuchungenTableCache === undefined) this.normalisierteBuchungenTableCache = new NormalisierteBuchungenTableCache(this.getRootFolderId());
         return this.normalisierteBuchungenTableCache;
