@@ -328,6 +328,8 @@ class KontenTableCache extends TableCache {
     //Kontenspalte befüllen
     for (let buchungRow of normalisierteBuchungen) {
       let kontoRow = this.getOrCreateRowById(buchungRow.getKonto());
+      if (kontoRow.getQuelle() === "") kontoRow.setQuelle(buchungRow.getQuelltabelle());
+      if (kontoRow.getBeispiel() === "") kontoRow.setBeispiel(buchungRow.getLink());
       //Kontenspalte befüllen
       let monat: string = buchungRow.getMonat().toString();
       let kontenSpalte = this.getKontenSpalten()[monat];
@@ -347,6 +349,113 @@ class KontenTableCache extends TableCache {
 
   }
 }
+
+
+class UStVATableCache extends TableCache {
+  constructor(rootId: string) {
+    super(rootId, "UStVAD");
+  }
+  public createNewRow(): UStVA { return super.createNewRow() as UStVA; }
+  public getRowByIndex(rowIndex: string): UStVA { return new UStVA(this, rowIndex); }
+  public getOrCreateRowById(id: string): UStVA { return super.getOrCreateRowById(id) as UStVA; }
+  public UStVASummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[]) {
+    this.deleteAll();
+    //ZN spalte befüllen
+
+
+    // alle Eintrage mit Status "aktuelle Daten" neu generieren
+    //Stati: "aktuelle Daten", "verschickt","bestätigt", "berichtigt"  
+
+    let periodeUndStatusMonatlich = {
+      "1": "01 aktuelle Daten",
+      "2": "02 aktuelle Daten",
+      "3": "03 aktuelle Daten",
+      "4": "04 aktuelle Daten",
+      "5": "05 aktuelle Daten",
+      "6": "06 aktuelle Daten",
+      "7": "07 aktuelle Daten",
+      "8": "08 aktuelle Daten",
+      "9": "09 aktuelle Daten",
+      "10": "10 aktuelle Daten",
+      "11": "11 aktuelle Daten",
+      "12": "12 aktuelle Daten"
+    }
+    let periodeUndStatusProQuartal = {
+      "1": "1. Quartal aktuelle Daten",
+      "2": "1. Quartal aktuelle Daten",
+      "3": "1. Quartal aktuelle Daten",
+      "4": "2. Quartal aktuelle Daten",
+      "5": "2. Quartal aktuelle Daten",
+      "6": "2. Quartal aktuelle Daten",
+      "7": "3. Quartal aktuelle Daten",
+      "8": "3. Quartal aktuelle Daten",
+      "9": "3. Quartal aktuelle Daten",
+      "10": "4. Quartal aktuelle Daten",
+      "11": "4. Quartal aktuelle Daten",
+      "12": "4. Quartal aktuelle Daten"
+    }
+
+    //let periodenHash = periodeUndStatusProQuartal;
+    this.aktualisieren(periodeUndStatusMonatlich, normalisierteBuchungen);
+    this.aktualisieren(periodeUndStatusProQuartal, normalisierteBuchungen);
+  }
+  private aktualisieren(periodenHash: Object, normalisierteBuchungen: NormalisierteBuchung[]) {
+    let summenHash = this.getOrCreateHashTable("Periode und Status");
+    //alle Perioden initialisieren------------------------------------------------------------------------------------------------------
+    for (var index in periodenHash) {
+      let periode = periodenHash[index];
+      let ustvaRow = summenHash[periode];
+      if (ustvaRow == undefined) {
+        ustvaRow = this.createNewRow();
+        ustvaRow.setValue("Periode und Status", periode);
+        summenHash = this.getOrCreateHashTable("Periode und Status");
+      }
+      ustvaRow.setValue("erstellt am", new Date());
+      ustvaRow.setValue("21", 0);
+      ustvaRow.setValue("81", 0);
+      ustvaRow.setValue("66", 0);
+      ustvaRow.setValue("83", 0);
+    }
+
+    //Summen für Formularfelder aus Buchungen berechnen---------------------------------------------------------------------------------
+    for (let buchungRow of normalisierteBuchungen) {
+      if (buchungRow.getValue("Text") !== "Umsatzsteuer = Umsatzsteuer 19% - Vorsteuer") {
+        switch (buchungRow.getValue("Gegenkonto")) {
+          case "USt. in Rechnung gestellt":
+            var monat = buchungRow.getValue("Monat bezahlt").toString();
+            if (monat == "") break;//wenn nicht bezahlt wurde, muss bei Ist-Versteuerung keine Mehrwertsteuer bezahlt werden
+            var periode = periodenHash[monat];
+            if (periode == undefined) break;
+            var ustvaRow = summenHash[periode];
+            var aktuellerBetrag = Number(buchungRow.getValue("Betrag")) / 0.19;
+            var aktuelleSumme = ustvaRow.getValue("81");
+            ustvaRow.setValue("81", aktuellerBetrag + aktuelleSumme);
+            break;
+          case "Vorsteuer":
+            var monat = buchungRow.getValue("Monat").toString();
+            var periode = periodenHash[monat];
+            if (periode == undefined) break;
+            var ustvaRow = summenHash[periode];
+            var aktuellerBetrag = -Number(buchungRow.getValue("Betrag"));
+            var aktuelleSumme = ustvaRow.getValue("66");
+            ustvaRow.setValue("66", aktuellerBetrag + aktuelleSumme);
+            break;
+          default:
+            break;
+        }
+      }
+    }
+    //Feld 81 runden Feld 83 berechnen
+    for (var index in periodenHash) {
+      var periode = periodenHash[index];
+      ustvaRow = summenHash[periode];
+      ustvaRow.setValue("81", Math.floor(ustvaRow.getValue("81")));
+      ustvaRow.setValue("83", ustvaRow.getValue("81") * 0.19 - ustvaRow.getValue("66"));
+    }
+  }
+}
+
+
 class EURTableCache extends TableCache {
   private kontenSpalten: Object;
   constructor(rootId: string) {
@@ -386,7 +495,9 @@ class EURTableCache extends TableCache {
     this.deleteAll();
     //ZN spalte befüllen
     for (let buchungRow of normalisierteBuchungen) {
-      let znRow = this.getOrCreateRowById(buchungRow.getZN());
+      let zn = buchungRow.getZN();
+      if (buchungRow.getZN() === "") zn = "keine ZN";
+      let znRow = this.getOrCreateRowById(zn);
       //Kontenspalte befüllen
       let monat: string = buchungRow.getMonatbezahlt().toString();
       if (monat !== "") {
@@ -460,8 +571,7 @@ class Umbuchung extends Buchung {
   public setBezahltAm(datum: Date) { this.setValue("bezahlt am", datum); }
   public nichtBezahlt(): boolean { return this.getBezahltAm() === ""; }
   public isBezahlt(): boolean { return !this.nichtBezahlt(); }
-  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
-    const quellTabelle = "Umbuchung";
+  public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date, quellTabelle: string) {
     this.monat = belegMonat(geschaeftsjahr, this.getValue("Datum"));
     if (this.monat === null) this.monat = Number.NaN;
     if (this.getBezahltAm() !== "offen") this.monatBezahlt = bezahltMonat(geschaeftsjahr, this.getBezahltAm());
@@ -589,18 +699,19 @@ class EinnahmenRechnung extends Rechnung {
   public getZahlungsziel() { return this.getValue("Zahlungsziel"); }
   public setZahlungsziel(value: any) { this.setValue("Zahlungsziel", value); }
   public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
-    super.addToTableCache(tableCache, geschaeftsjahr);
+    const quellTabelle = "Rechnung";
+    super.addToTableCache(tableCache, geschaeftsjahr, quellTabelle);
 
     //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("USt. in Rechnung gestellt");
 
     //Buchung Mehrwertsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Konto wechseln
@@ -612,7 +723,7 @@ class EinnahmenRechnung extends Rechnung {
 
 class Gutschrift extends Rechnung {
   public getText() { return this.getKonto() + " " + this.getNettoBetragMitVorzeichen() + " €" }
-  public getKonto() { return "Debitor:" + this.getValue("Name"); }
+  public getKonto() { return "Leistung:" + this.getValue("Name"); }
   public getName() { return this.getValue("Name"); }
   public setName(value: string) { this.setValue("Name", value); }
   public getStatus() { return this.getValue("Status"); }
@@ -624,18 +735,19 @@ class Gutschrift extends Rechnung {
   public getDokumententyp() { return this.getValue("Dokumententyp"); }
   public setDokumententyp(value: any) { this.setValue("Dokumententyp", value); }
   public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
-    super.addToTableCache(tableCache, geschaeftsjahr);
+    const quellTabelle = "Gutschrift";
+    super.addToTableCache(tableCache, geschaeftsjahr, quellTabelle);
 
     //Buchung Mehrwertsteuer auf USt. in Rechnung gestellt
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("USt. in Rechnung gestellt");
 
     //Buchung Mehrwertsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Rechnung", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Konto wechseln
@@ -651,18 +763,19 @@ class AusgabenRechnung extends Rechnung {
   public getBetragMitVorzeichen() { return -this.getBetrag() };
   public getNettoBetragMitVorzeichen() { return -this.getNettoBetrag() };
   public addToTableCache(tableCache: NormalisierteBuchungenTableCache, geschaeftsjahr: Date) {
-    super.addToTableCache(tableCache, geschaeftsjahr);
+    const quellTabelle = "Ausgabe";
+    super.addToTableCache(tableCache, geschaeftsjahr, quellTabelle);
 
     //Buchung Vorsteuer auf Vorsteuer
     let normBuchung = tableCache.createNewRow();
-    this.copyFields("Ausgabe", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     normBuchung.setBetrag(-this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
     normBuchung.setKonto("Vorsteuer");
 
     //Buchung Vorsteuer auf Bilanzkonto
     normBuchung = tableCache.createNewRow();
-    this.copyFields("Ausgabe", normBuchung);
+    this.copyFields(quellTabelle, normBuchung);
     //Vorzeichen wechseln
     normBuchung.setBetrag(this.getMehrwertsteuer());
     //Kontenstammdaten werden später ergänzt
@@ -844,35 +957,33 @@ class Konto extends TableRow {
   public getDefaultMwSt() { return this.getGruppe().split(",")[1]; }
 
 }
-class UStVAD extends TableRow{
-  public getUs202000001(){return this.getValue("Us202000001");}
-  public setUs202000001(value){this.setValue("Us202000001",value);}
-  public getID(){return this.getValue("ID");}
-  public setID(value){this.setValue("ID",value);}
-  public getLink(){return this.getValue("Link");}
-  public setLink(value){this.setValue("Link",value);}
-  public getDatum(){return this.getValue("Datum");}
-  public setDatum(value){this.setValue("Datum",value);}
-  public getKonto(){return this.getValue("Konto");}
-  public setKonto(value){this.setValue("Konto",value);}
-  public getBetrag(){return this.getValue("Betrag");}
-  public setBetrag(value){this.setValue("Betrag",value);}
-  public getGegenkonto(){return this.getValue("Gegenkonto");}
-  public setGegenkonto(value){this.setValue("Gegenkonto",value);}
-  public getbezahltam(){return this.getValue("bezahlt am");}
-  public setbezahltam(value){this.setValue("bezahlt am",value);}
-  public getPeriodeundStatus(){return this.getValue("Periode und Status");}
-  public setPeriodeundStatus(value){this.setValue("Periode und Status",value);}
-  public geterstelltam(){return this.getValue("erstellt am");}
-  public seterstelltam(value){this.setValue("erstellt am",value);}
-  public get21(){return this.getValue("21");}
-  public set21(value){this.setValue("21",value);}
-  public get81(){return this.getValue("81");}
-  public set81(value){this.setValue("81",value);}
-  public get66(){return this.getValue("66");}
-  public set66(value){this.setValue("66",value);}
-  public get83(){return this.getValue("83");}
-  public set83(value){this.setValue("83",value);}
+class UStVA extends TableRow {
+  public getFileId() { return this.getValue("ID"); }
+  public setFileId(value: string) { this.setValue("ID", value); }
+  public getLink() { return this.getValue("Link"); }
+  public setLink(value) { this.setValue("Link", value); }
+  public getDatum() { return this.getValue("Datum"); }
+  public setDatum(value) { this.setValue("Datum", value); }
+  public getKonto() { return this.getValue("Konto"); }
+  public setKonto(value) { this.setValue("Konto", value); }
+  public getBetrag() { return this.getValue("Betrag"); }
+  public setBetrag(value) { this.setValue("Betrag", value); }
+  public getGegenkonto() { return this.getValue("Gegenkonto"); }
+  public setGegenkonto(value) { this.setValue("Gegenkonto", value); }
+  public getbezahltam() { return this.getValue("bezahlt am"); }
+  public setbezahltam(value) { this.setValue("bezahlt am", value); }
+  public getPeriodeundStatus() { return this.getValue("Periode und Status"); }
+  public setPeriodeundStatus(value) { this.setValue("Periode und Status", value); }
+  public geterstelltam() { return this.getValue("erstellt am"); }
+  public seterstelltam(value) { this.setValue("erstellt am", value); }
+  public get21() { return this.getValue("21"); }
+  public set21(value) { this.setValue("21", value); }
+  public get81() { return this.getValue("81"); }
+  public set81(value) { this.setValue("81", value); }
+  public get66() { return this.getValue("66"); }
+  public set66(value) { this.setValue("66", value); }
+  public get83() { return this.getValue("83"); }
+  public set83(value) { this.setValue("83", value); }
 }
 
 class EUR extends TableRow {

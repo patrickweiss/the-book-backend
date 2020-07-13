@@ -46,6 +46,7 @@ class BusinessModel {
     private bankbuchungenTableCache: BankbuchungenTableCache;
     private umbuchungenTableCache: UmbuchungenTableCache;
     private kontenTableCache: KontenTableCache;
+    private ustvaTableCachde: UStVATableCache;
     private eurTableCache: EURTableCache;
     public normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
     //Server specific code
@@ -254,10 +255,11 @@ class BusinessModel {
         this.getKontenTableCache().bilanzSummenAktualisieren(this.getNormalisierteBuchungenArray());
         this.getEURTableCache().setKontenSpalten(this.endOfYear().getFullYear());
         this.getEURTableCache().eurSummenAktualisieren(this.getNormalisierteBuchungenArray());
+        this.getUStVATableCache().UStVASummenAktualisieren(this.getNormalisierteBuchungenArray());
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
-            umbuchung.addToTableCache(this.getNormalisierteBuchungenTableCache(), this.beginOfYear());
+            umbuchung.addToTableCache(this.getNormalisierteBuchungenTableCache(), this.beginOfYear(),"Umbuchung");
         }
     }
     public umsatzsteuerJahresabrechnung() {
@@ -329,6 +331,7 @@ class BusinessModel {
         if (this.ausgabenTableCache !== undefined) this.ausgabenTableCache.save();
         if (this.bewirtungsbelegeTableCache !== undefined) this.bewirtungsbelegeTableCache.save();
         if (this.kontenTableCache !== undefined) this.kontenTableCache.save();
+        if (this.ustvaTableCachde!==undefined)this.ustvaTableCachde.save();
         if (this.eurTableCache !== undefined) this.eurTableCache.save();
         if (this.abschreibungenTableCache !== undefined) this.abschreibungenTableCache.save();
         if (this.verpflegungsmehraufwendungenTableCache!== undefined) this.verpflegungsmehraufwendungenTableCache.save();
@@ -383,6 +386,10 @@ class BusinessModel {
     private getKontenTableCache(): KontenTableCache {
         if (this.kontenTableCache === undefined) this.kontenTableCache = new KontenTableCache(this.getRootFolderId());
         return this.kontenTableCache;
+    }
+    private getUStVATableCache(): UStVATableCache {
+        if (this.ustvaTableCachde === undefined) this.ustvaTableCachde = new UStVATableCache(this.getRootFolderId());
+        return this.ustvaTableCachde;
     }
     private getEURTableCache(): EURTableCache {
         if (this.eurTableCache === undefined) this.eurTableCache = new EURTableCache(this.getRootFolderId());
