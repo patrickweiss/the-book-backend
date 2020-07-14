@@ -358,7 +358,7 @@ class UStVATableCache extends TableCache {
   public createNewRow(): UStVA { return super.createNewRow() as UStVA; }
   public getRowByIndex(rowIndex: string): UStVA { return new UStVA(this, rowIndex); }
   public getOrCreateRowById(id: string): UStVA { return super.getOrCreateRowById(id) as UStVA; }
-  public UStVASummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[]) {
+  public UStVASummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[], beginnOfYear: Date) {
     this.deleteAll();
     //ZN spalte befüllen
 
@@ -396,19 +396,22 @@ class UStVATableCache extends TableCache {
     }
 
     //let periodenHash = periodeUndStatusProQuartal;
-    this.aktualisieren(periodeUndStatusMonatlich, normalisierteBuchungen);
-    this.aktualisieren(periodeUndStatusProQuartal, normalisierteBuchungen);
+    this.aktualisieren(periodeUndStatusMonatlich, normalisierteBuchungen, beginnOfYear);
+    this.aktualisieren(periodeUndStatusProQuartal, normalisierteBuchungen, beginnOfYear);
   }
-  private aktualisieren(periodenHash: Object, normalisierteBuchungen: NormalisierteBuchung[]) {
+  private aktualisieren(periodenHash: Object, normalisierteBuchungen: NormalisierteBuchung[], beginnOfYear: Date) {
     let summenHash = this.getOrCreateHashTable("Periode und Status");
     //alle Perioden initialisieren------------------------------------------------------------------------------------------------------
     for (var index in periodenHash) {
       let periode = periodenHash[index];
-      let ustvaRow = summenHash[periode];
+      let ustvaRow = summenHash[periode] as UStVA;
       if (ustvaRow == undefined) {
         ustvaRow = this.createNewRow();
         ustvaRow.setValue("Periode und Status", periode);
         summenHash = this.getOrCreateHashTable("Periode und Status");
+        ustvaRow.setDatum(
+          new Date( beginnOfYear.getFullYear() , parseInt(index)-1 )
+        );
       }
       ustvaRow.setValue("erstellt am", new Date());
       ustvaRow.setValue("21", 0);

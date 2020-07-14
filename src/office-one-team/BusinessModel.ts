@@ -255,7 +255,7 @@ class BusinessModel {
         this.getKontenTableCache().bilanzSummenAktualisieren(this.getNormalisierteBuchungenArray());
         this.getEURTableCache().setKontenSpalten(this.endOfYear().getFullYear());
         this.getEURTableCache().eurSummenAktualisieren(this.getNormalisierteBuchungenArray());
-        this.getUStVATableCache().UStVASummenAktualisieren(this.getNormalisierteBuchungenArray());
+        this.getUStVATableCache().UStVASummenAktualisieren(this.getNormalisierteBuchungenArray(),this.beginOfYear());
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
@@ -387,7 +387,7 @@ class BusinessModel {
         if (this.kontenTableCache === undefined) this.kontenTableCache = new KontenTableCache(this.getRootFolderId());
         return this.kontenTableCache;
     }
-    private getUStVATableCache(): UStVATableCache {
+    public getUStVATableCache(): UStVATableCache {
         if (this.ustvaTableCachde === undefined) this.ustvaTableCachde = new UStVATableCache(this.getRootFolderId());
         return this.ustvaTableCachde;
     }

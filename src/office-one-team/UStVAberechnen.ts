@@ -4,7 +4,7 @@ function UStVAberechnen(rootFolderId: string){
     BM.save();
     var result = {
         serverFunction: ServerFunction.UStVAberechnen,
-        BuchungenD: BM.getNormalisierteBuchungenTableCache().getData(),
+        UStVAD: BM.getUStVATableCache().getData(),
     }
       return JSON.stringify(result);
 }
