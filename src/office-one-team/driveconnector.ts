@@ -19,6 +19,7 @@ class DriveConnector {
       EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
+      UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0048",
       BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0048",
       UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0048",
       RechnungenD: "1 Rechnung schreiben - Version:0048",

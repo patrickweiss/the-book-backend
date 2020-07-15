@@ -53,10 +53,13 @@ class BusinessModel {
     constructor(rootfolderId: string) { this.rootFolderId = rootfolderId; }
 
     private endOfYearCache: Date;
+    private getValueByName(name:string){
+        return DriveConnector.getValueByName(this.rootFolderId, name, oooVersion);
+    }
     public endOfYear() {
         if (this.endOfYearCache) return this.endOfYearCache;
         else {
-            this.endOfYearCache = new Date(parseInt(DriveConnector.getValueByName(this.rootFolderId, "KontenJahr", oooVersion).toString()), 11, 31);
+            this.endOfYearCache = new Date(parseInt(this.getValueByName("KontenJahr").toString()), 11, 31);
             return this.endOfYearCache;
         }
     }
@@ -262,7 +265,7 @@ class BusinessModel {
         this.getKontenTableCache().bilanzSummenAktualisieren(this.getNormalisierteBuchungenArray());
         this.getEURTableCache().setKontenSpalten(this.endOfYear().getFullYear());
         this.getEURTableCache().eurSummenAktualisieren(this.getNormalisierteBuchungenArray());
-        this.getUStVATableCache().UStVASummenAktualisieren(this.getNormalisierteBuchungenArray(),this.beginOfYear());
+        this.getUStVATableCache().UStVASummenAktualisieren(this.getNormalisierteBuchungenArray(),this.beginOfYear(),this.getValueByName("UStVAPeriode"));
     }
     private addToNormalisierteBuchungen(umbuchungen:Umbuchung[]){
         for (let umbuchung of umbuchungen) {
