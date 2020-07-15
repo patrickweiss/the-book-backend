@@ -48,7 +48,7 @@ class BusinessModel {
     private kontenTableCache: KontenTableCache;
     private ustvaTableCachde: UStVATableCache;
     private eurTableCache: EURTableCache;
-    public normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
+    private normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
     //Server specific code
     constructor(rootfolderId: string) { this.rootFolderId = rootfolderId; }
 
