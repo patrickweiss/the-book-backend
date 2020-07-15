@@ -363,33 +363,34 @@ class UStVATableCache extends TableCache {
     // alle Eintrage mit Status "aktuelle Daten" neu generieren
     //Stati: "aktuelle Daten", "verschickt","bestätigt", "berichtigt"  
 
+
     let periodeUndStatusMonatlich = {
-      "1": "01 aktuelle Daten",
-      "2": "02 aktuelle Daten",
-      "3": "03 aktuelle Daten",
-      "4": "04 aktuelle Daten",
-      "5": "05 aktuelle Daten",
-      "6": "06 aktuelle Daten",
-      "7": "07 aktuelle Daten",
-      "8": "08 aktuelle Daten",
-      "9": "09 aktuelle Daten",
-      "10": "10 aktuelle Daten",
-      "11": "11 aktuelle Daten",
-      "12": "12 aktuelle Daten"
+      "1": "01 Januar",
+      "2": "02 Februar",
+      "3": "03 März",
+      "4": "04 April",
+      "5": "05 Mai",
+      "6": "06 Juni",
+      "7": "07 Juli",
+      "8": "08 August",
+      "9": "09 September",
+      "10": "10 Oktober",
+      "11": "11 November",
+      "12": "12 Dezember"
     }
     let periodeUndStatusProQuartal = {
-      "1": "1. Quartal aktuelle Daten",
-      "2": "1. Quartal aktuelle Daten",
-      "3": "1. Quartal aktuelle Daten",
-      "4": "2. Quartal aktuelle Daten",
-      "5": "2. Quartal aktuelle Daten",
-      "6": "2. Quartal aktuelle Daten",
-      "7": "3. Quartal aktuelle Daten",
-      "8": "3. Quartal aktuelle Daten",
-      "9": "3. Quartal aktuelle Daten",
-      "10": "4. Quartal aktuelle Daten",
-      "11": "4. Quartal aktuelle Daten",
-      "12": "4. Quartal aktuelle Daten"
+      "1": "1. Quartal",
+      "2": "1. Quartal",
+      "3": "1. Quartal",
+      "4": "2. Quartal",
+      "5": "2. Quartal",
+      "6": "2. Quartal",
+      "7": "3. Quartal",
+      "8": "3. Quartal",
+      "9": "3. Quartal",
+      "10": "4. Quartal",
+      "11": "4. Quartal",
+      "12": "4. Quartal"
     }
 
     //let periodenHash = periodeUndStatusProQuartal;

@@ -46,7 +46,7 @@ class BusinessModel {
     private bankbuchungenTableCache: BankbuchungenTableCache;
     private umbuchungenTableCache: UmbuchungenTableCache;
     private kontenTableCache: KontenTableCache;
-    private ustvaTableCachde: UStVATableCache;
+    private ustvaTableCache: UStVATableCache;
     private eurTableCache: EURTableCache;
     private normalisierteBuchungenTableCache: NormalisierteBuchungenTableCache;
     //Server specific code
@@ -212,6 +212,12 @@ class BusinessModel {
     public getOffeneUmbuchungenArray(): Umbuchung[] { return this.getUmbuchungenArray().filter(ausgabe => { return (ausgabe.nichtBezahlt() && ausgabe.getId() !== ""); }) }
 
     public getUStVAArray():UStVA[] { return this.getUStVATableCache().getRowArray() as UStVA[]; }
+    public getUStVAFuerMonat(monat: string): UStVA[] {
+        return this.getUStVAArray().filter(ausgabe => {
+            const ausgabeDatum = new Date(ausgabe.getDatum());
+            return (ausgabeDatum.getFullYear() === this.endOfYear().getFullYear() && ausgabeDatum.getMonth() === parseInt(monat) - 1);
+        });
+    }
 
     public getKontenArray(): Konto[] { return this.getKontenTableCache().getRowArray() as Konto[]; }
     public getOrCreateKonto(id: string): Konto { return this.getKontenTableCache().getOrCreateRowById(id); }
@@ -333,7 +339,7 @@ class BusinessModel {
         if (this.ausgabenTableCache !== undefined) this.ausgabenTableCache.save();
         if (this.bewirtungsbelegeTableCache !== undefined) this.bewirtungsbelegeTableCache.save();
         if (this.kontenTableCache !== undefined) this.kontenTableCache.save();
-        if (this.ustvaTableCachde!==undefined)this.ustvaTableCachde.save();
+        if (this.ustvaTableCache!==undefined)this.ustvaTableCache.save();
         if (this.eurTableCache !== undefined) this.eurTableCache.save();
         if (this.abschreibungenTableCache !== undefined) this.abschreibungenTableCache.save();
         if (this.verpflegungsmehraufwendungenTableCache!== undefined) this.verpflegungsmehraufwendungenTableCache.save();
@@ -390,8 +396,8 @@ class BusinessModel {
         return this.kontenTableCache;
     }
     public getUStVATableCache(): UStVATableCache {
-        if (this.ustvaTableCachde === undefined) this.ustvaTableCachde = new UStVATableCache(this.getRootFolderId());
-        return this.ustvaTableCachde;
+        if (this.ustvaTableCache === undefined) this.ustvaTableCache = new UStVATableCache(this.getRootFolderId());
+        return this.ustvaTableCache;
     }
     private getEURTableCache(): EURTableCache {
         if (this.eurTableCache === undefined) this.eurTableCache = new EURTableCache(this.getRootFolderId());
