@@ -60,10 +60,10 @@ class BusinessModel {
             return this.endOfYearCache;
         }
     }
-    public beginOfYear() { return new Date(this.endOfYear().getFullYear(), 0, 1) }
     public getRootFolderId() { return this.rootFolderId; }
 
     // Generic code for client and server identical 
+    public beginOfYear() { return new Date(this.endOfYear().getFullYear(), 0, 1) }
     public handleAction(action: any) {
         if (action.type === Type.BelegZuBankbuchungZuordnen) {
             if (action.belegTyp === BelegTyp.Ausgabe) this.belegZuordnen(this.getOrCreateAusgabenRechnung(action.belegID), action);
@@ -174,8 +174,6 @@ class BusinessModel {
     public getOffeneBewirtungsbelegeArray(): Bewirtungsbeleg[] { return this.getBewirtungsbelegeArray().filter(bewirtung => { return (bewirtung.nichtBezahlt() && bewirtung.getId() !== ""); }) }
 
     public getAbschreibungenArray(): Abschreibung[] { return this.getAbschreibungenTableCache().getRowArray() as Abschreibung[]; }
-    public getVerpflegungsmehraufwendungenArray(): Verpflegungsmehraufwendung[] { return this.getVerpflegungsmehraufwendungenTableCache().getRowArray() as Verpflegungsmehraufwendung[]; }
-    
     public getOrCreateAbschreibung(id: string) { return this.getAbschreibungenTableCache().getOrCreateRowById(id); }
     public getAbschreibungenZuAnlageArray(anlageKonto: string): Abschreibung[] {
         var abschreibungenZuAnlageKonto = this.getAbschreibungenArray().filter(abschreibung => {
@@ -184,6 +182,8 @@ class BusinessModel {
         return abschreibungenZuAnlageKonto;
     }
 
+    public getVerpflegungsmehraufwendungenArray(): Verpflegungsmehraufwendung[] { return this.getVerpflegungsmehraufwendungenTableCache().getRowArray() as Verpflegungsmehraufwendung[]; }
+    
     public getVertraegeArray(): Vertrag[] { return this.getVertraegeTableCache().getRowArray() as Vertrag[] }
     public getOrCreateVertrag(id: string) { return this.getVertraegeTableCache().getOrCreateRowById(id); }
     public getOffeneVertraegeArray(): Vertrag[] { return this.getVertraegeArray() };
@@ -206,12 +206,12 @@ class BusinessModel {
         return latestEntry;
     }
 
-
-
     public getUmbuchungenArray(): Umbuchung[] { return this.getUmbuchungenTableCache().getRowArray() as Umbuchung[]; }
     public createUmbuchung() { return this.getUmbuchungenTableCache().createNewRow() };
     public getOrCreateUmbuchung(id: string) { return this.getUmbuchungenTableCache().getOrCreateRowById(id); }
     public getOffeneUmbuchungenArray(): Umbuchung[] { return this.getUmbuchungenArray().filter(ausgabe => { return (ausgabe.nichtBezahlt() && ausgabe.getId() !== ""); }) }
+
+    public getUStVAArray():UStVA[] { return this.getUStVATableCache().getRowArray() as UStVA[]; }
 
     public getKontenArray(): Konto[] { return this.getKontenTableCache().getRowArray() as Konto[]; }
     public getOrCreateKonto(id: string): Konto { return this.getKontenTableCache().getOrCreateRowById(id); }
@@ -237,6 +237,7 @@ class BusinessModel {
         konto.setBeispiel(ausgabe.getLink());
         if (kontoArt === "Au") { konto.setKontentyp("GuV"); konto.setSubtyp("Aufwand"); } else { konto.setKontentyp("Bilanz"); konto.setSubtyp("Anlage") }
     }
+
     public getNormalisierteBuchungenArray(): NormalisierteBuchung[] { return this.getNormalisierteBuchungenTableCache().getRowArray() as NormalisierteBuchung[]; }
 
     public kontoSummenAktualisieren() {
@@ -262,6 +263,7 @@ class BusinessModel {
             umbuchung.addToTableCache(this.getNormalisierteBuchungenTableCache(), this.beginOfYear(),"Umbuchung");
         }
     }
+    
     public umsatzsteuerJahresabrechnung() {
         let fealligeUmsatzsteuer = 0;
         this.getImGeschaeftsjahrBezahlteEinnahmenRechnungen().forEach(rechnung => { fealligeUmsatzsteuer += rechnung.getMehrwertsteuer() });
