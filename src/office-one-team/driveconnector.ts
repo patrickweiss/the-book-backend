@@ -1,4 +1,4 @@
-const oooVersion = "0048";
+const oooVersion = "0049";
 
 class DriveConnector {
 
@@ -7,6 +7,30 @@ class DriveConnector {
   static rangeValues = {};
 
   static oooVersions = {
+    "0049": {
+      AusgabenD: "2 Ausgaben erfassen - Version:0049",
+      AusgabenDatei: "2 Ausgaben erfassen - Version:0049",
+      BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0049",
+      AbschreibungenD: "2 Ausgaben erfassen - Version:0049",
+      VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0049",
+      "VerträgeD": "2 Ausgaben erfassen - Version:0049",
+      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0049",
+      UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0049",
+      RechnungenD: "1 Rechnung schreiben - Version:0049",
+      EURechnungenD: "1 Rechnung schreiben - Version:0049",
+      GutschriftenD: "1 Rechnung schreiben - Version:0049",
+      GutschriftenDatei:  "1 Rechnung schreiben - Version:0049",
+      "1 Rechnung schreiben - Version:0049": "11ooB8tyVlX6dy8ypC9teZBJOywEh1VE2at2BEvk4MO4g",
+      "2 Ausgaben erfassen - Version:0049": "1WozzCsuQI77mOC7AZqSGLyoaptwZBzqTbDSV2PYS0DM",
+      "3 Bankbuchungen zuordnen - Version:0049": "1SIVUZZUgOErIdjjwvfVHXFU-WIx2fUFAVRk57UU3f-w",
+      "4 Bilanz, Gewinn und Steuererklärungen - Version:0049": "1-FP1NQ3p1n6xxxk0iUnBpNVDbpd-ESALo-c7osB2-Vs"
+    },
     "0048": {
       AusgabenD: "2 Ausgaben erfassen - Version:0048",
       AusgabenDatei: "2 Ausgaben erfassen - Version:0048",
