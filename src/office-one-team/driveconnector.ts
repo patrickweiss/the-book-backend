@@ -15,6 +15,7 @@ class DriveConnector {
       VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0049",
       "VerträgeD": "2 Ausgaben erfassen - Version:0049",
       KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      ElsterUStVA: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
       UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
       EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
       BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",

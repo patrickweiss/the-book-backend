@@ -973,6 +973,12 @@ class UStVA extends TableRow {
   public set21(value) { this.setValue("21", value); }
   public get81() { return this.getValue("81"); }
   public set81(value) { this.setValue("81", value); }
+  public get48() { return this.getValue("48"); }
+  public set48(value) { this.setValue("48", value); }
+  public get35() { return this.getValue("35"); }
+  public set35(value) { this.setValue("35", value); }
+  public get36() { return this.getValue("36"); }
+  public set36(value) { this.setValue("36", value); }
   public get66() { return this.getValue("66"); }
   public set66(value) { this.setValue("66", value); }
   public get83() { return this.getValue("83"); }
