@@ -355,7 +355,7 @@ class UStVATableCache extends TableCache {
   public createNewRow(): UStVA { return super.createNewRow() as UStVA; }
   public getRowByIndex(rowIndex: string): UStVA { return new UStVA(this, rowIndex); }
   public getOrCreateRowById(id: string): UStVA { return super.getOrCreateRowById(id) as UStVA; }
-  public UStVASummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[], beginnOfYear: Date,periode:string) {
+  public UStVASummenAktualisieren(normalisierteBuchungen: NormalisierteBuchung[], beginnOfYear: Date, periode: string) {
     this.deleteAll();
     //ZN spalte befüllen
 
@@ -394,7 +394,7 @@ class UStVATableCache extends TableCache {
     }
 
     //let periodenHash = periodeUndStatusProQuartal;
-    if (periode==="monatlich")this.aktualisieren(periodeUndStatusMonatlich, normalisierteBuchungen, beginnOfYear);
+    if (periode === "monatlich") this.aktualisieren(periodeUndStatusMonatlich, normalisierteBuchungen, beginnOfYear);
     else this.aktualisieren(periodeUndStatusProQuartal, normalisierteBuchungen, beginnOfYear);
   }
   private aktualisieren(periodenHash: Object, normalisierteBuchungen: NormalisierteBuchung[], beginnOfYear: Date) {
@@ -408,12 +408,14 @@ class UStVATableCache extends TableCache {
         ustvaRow.setValue("Periode und Status", periode);
         summenHash = this.getOrCreateHashTable("Periode und Status");
         ustvaRow.setDatum(
-          new Date( beginnOfYear.getFullYear() , parseInt(index)-1 )
+          new Date(beginnOfYear.getFullYear(), parseInt(index) - 1)
         );
       }
       ustvaRow.setValue("erstellt am", new Date());
       ustvaRow.setValue("21", 0);
       ustvaRow.setValue("81", 0);
+      ustvaRow.setValue("35", 0);
+      ustvaRow.setValue("36", 0);
       ustvaRow.setValue("66", 0);
       ustvaRow.setValue("83", 0);
     }
@@ -427,10 +429,21 @@ class UStVATableCache extends TableCache {
             if (monat == "") break;//wenn nicht bezahlt wurde, muss bei Ist-Versteuerung keine Mehrwertsteuer bezahlt werden
             var periode = periodenHash[monat];
             if (periode == undefined) break;
-            var ustvaRow = summenHash[periode];
-            var aktuellerBetrag = Number(buchungRow.getValue("Betrag")) / 0.19;
-            var aktuelleSumme = ustvaRow.getValue("81");
-            ustvaRow.setValue("81", aktuellerBetrag + aktuelleSumme);
+            var ustvaRow = summenHash[periode] as UStVA;
+            if (buchungRow.getDatum().getFullYear() === 2020 && parseInt(periodenHash[buchungRow.getValue("Monat").toString()]) >= 7) {
+              //CoronaMwST: 16% in 35 und 36
+              let aktuellerBetrag:number = Number(buchungRow.getValue("Betrag")) / 0.16;
+              let aktuelleMwSt: number = Number(buchungRow.getValue("Betrag"));
+              ustvaRow.set36(ustvaRow.get36() + aktuelleMwSt);
+              let aktuelleSumme:number = ustvaRow.getValue("35");
+              ustvaRow.setValue("35", aktuellerBetrag + aktuelleSumme);
+            }
+            else {
+              //normale MwSt: 19% in 81
+              var aktuellerBetrag = Number(buchungRow.getValue("Betrag")) / 0.19;
+              var aktuelleSumme = ustvaRow.getValue("81");
+              ustvaRow.setValue("81", aktuellerBetrag + aktuelleSumme);
+            }
             break;
           case "Vorsteuer":
             var monat = buchungRow.getValue("Monat").toString();
@@ -449,9 +462,9 @@ class UStVATableCache extends TableCache {
     //Feld 81 runden Feld 83 berechnen
     for (var index in periodenHash) {
       var periode = periodenHash[index];
-      ustvaRow = summenHash[periode];
+      ustvaRow = summenHash[periode]as UStVA;
       ustvaRow.setValue("81", Math.floor(ustvaRow.getValue("81")));
-      ustvaRow.setValue("83", ustvaRow.getValue("81") * 0.19 - ustvaRow.getValue("66"));
+      ustvaRow.setValue("83", ustvaRow.getValue("81") * 0.19 + ustvaRow.get36() - ustvaRow.getValue("66"));
     }
   }
 }
@@ -977,8 +990,8 @@ class UStVA extends TableRow {
   public set48(value) { this.setValue("48", value); }
   public get35() { return this.getValue("35"); }
   public set35(value) { this.setValue("35", value); }
-  public get36() { return this.getValue("36"); }
-  public set36(value) { this.setValue("36", value); }
+  public get36() { return parseFloat(this.getValue("36"))as number; }
+  public set36(value:number) { this.setValue("36", value); }
   public get66() { return this.getValue("66"); }
   public set66(value) { this.setValue("66", value); }
   public get83() { return this.getValue("83"); }
