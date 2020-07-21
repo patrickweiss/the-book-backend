@@ -35,7 +35,7 @@ function UStVAverschicken(rootFolderId: string, ustvaID: string) {
   ustvaElster["kz83"] = ustva.get83();
   
   MailApp.sendEmail("patrick.sbrzesny@saw-office.net", "UStVA verschicken", JSON.stringify(ustvaElster));
-
+  
   var result = {
     serverFunction: ServerFunction.getNamedRangeData,
     rangeName: "UStVAD",

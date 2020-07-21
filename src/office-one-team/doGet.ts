@@ -1,23 +1,26 @@
 function doGet(e) {
 
     if (e === undefined) e = {
-        parameter: { email: "patrick.sbrzesny@saw-office.net" }
+        parameter: {
+            email: "patrick.sbrzesny@saw-office.net",
+            clientSecret: "fnkhnei7zj4g7k"
+        }
     };
 
     //https://script.google.com/macros/s/AKfycbz_X-7g3LPVEG8ehzB3JWwLPLvRdzXh0Z-46LWvSCWyJgTP4Ks/exec?clientSecret=fnkhnei7zj4g7k&email=patrick.sbrzesny@saw-office.net
     var params = e.parameter;
-    if (params.clientSecret != "fnkhnei7zj4g7k") return ContentService.createTextOutput("unauthorized request");
+    if (params.clientSecret != "fnkhnei7zj4g7k") return ContentService.createTextOutput(JSON.stringify({ message: "unauthorized request" }));
 
     let ustvaMails = searchUStVA(params.email);
-    if (ustvaMails.length === 0) return ContentService.createTextOutput("keine neue UStVA");
+    if (ustvaMails.length === 0) return ContentService.createTextOutput(JSON.stringify({ message: "keine neue UStVA" }));
 
     let firstMail = ustvaMails[0];
 
     markProcessed(firstMail);
-    const ustvaJSON = firstMail.getMessages()[0].getPlainBody();
-    Logger.log(ustvaJSON) 
+    const ustvaJSON = JSON.parse( firstMail.getMessages()[0].getPlainBody().replace(/(\r\n|\n|\r)/gm, ""));
+    Logger.log(JSON.stringify(ustvaJSON));
 
-    return ContentService.createTextOutput(ustvaJSON);
+    return ContentService.createTextOutput(JSON.stringify(ustvaJSON));
 }
 
 const PROCESSED_LABEL = "UStVA verschickt";
