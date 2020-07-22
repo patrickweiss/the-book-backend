@@ -27,10 +27,12 @@ class DriveConnector {
       EURechnungenD: "1 Rechnung schreiben - Version:0049",
       GutschriftenD: "1 Rechnung schreiben - Version:0049",
       GutschriftenDatei:  "1 Rechnung schreiben - Version:0049",
+      ElsterTransferD: "5 ElsterTransfer -Version:0049",
       "1 Rechnung schreiben - Version:0049": "11ooB8tyVlX6dy8ypC9teZBJOywEh1VE2at2BEvk4MO4g",
       "2 Ausgaben erfassen - Version:0049": "1WozzCsuQI77mOC7AZqSGLyoaptwZBzqTbDSV2PYS0DM",
       "3 Bankbuchungen zuordnen - Version:0049": "1SIVUZZUgOErIdjjwvfVHXFU-WIx2fUFAVRk57UU3f-w",
-      "4 Bilanz, Gewinn und Steuererklärungen - Version:0049": "1-FP1NQ3p1n6xxxk0iUnBpNVDbpd-ESALo-c7osB2-Vs"
+      "4 Bilanz, Gewinn und Steuererklärungen - Version:0049": "1-FP1NQ3p1n6xxxk0iUnBpNVDbpd-ESALo-c7osB2-Vs",
+      "5 ElsterTransfer -Version:0049":"1-LAQ6bfwmRkZKgx6zasZi6x_WIi4DdTb7p5GD86Zsqc"
     },
     "0048": {
       AusgabenD: "2 Ausgaben erfassen - Version:0048",
@@ -184,7 +186,7 @@ class DriveConnector {
 
 
 function generateAndMailTableRow() {
-  let namedRange = "EÜRD";
+  let namedRange = "ElsterTransferD";
   let columnArray = DriveConnector.getNamedRangeData("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt", namedRange, oooVersion)[0][0];
   let getterAndSetter = "";
   columnArray.forEach(column => {

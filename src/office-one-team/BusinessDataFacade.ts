@@ -551,6 +551,20 @@ class NormalisierteBuchungenTableCache extends TableCache {
     })
   }
 }
+class ElsterTransferTableCache extends TableCache {
+  constructor(rootId: string) {
+    super(rootId, "ElsterTransferD");
+  }
+  public createNewRow(): ElsterTransfer { return super.createNewRow() as ElsterTransfer; }
+  public getRowByIndex(rowIndex: string): ElsterTransfer {
+    return new ElsterTransfer(this, rowIndex) as ElsterTransfer;
+  }
+  public getOrCreateRowById(id: string): ElsterTransfer {
+    return super.getOrCreateRowById(id) as ElsterTransfer;
+  }
+}
+
+
 //Abstrakte Fassaden für Buchungssätze ---------------------------------------------------------------------------------
 class FinanzAction extends TableRow {
   public getBetrag(): number { return this.getValue("Betrag"); }
@@ -1040,6 +1054,19 @@ class NormalisierteBuchung extends FinanzAction {
   public setZN(value) { this.setValue("ZN", value); }
   public getQuelltabelle() { return this.getValue("Quelltabelle"); }
   public setQuelltabelle(value) { this.setValue("Quelltabelle", value); }
+}
+
+class ElsterTransfer extends TableRow{
+  public getdatum(){return this.getValue("datum");}
+  public setdatum(value){this.setValue("datum",value);}
+  public getemail(){return this.getValue("e-mail");}
+  public setemail(value){this.setValue("e-mail",value);}
+  public getperiode(){return this.getValue("periode");}
+  public setperiode(value){this.setValue("periode",value);}
+  public getdaten(){return this.getValue("daten");}
+  public setdaten(value){this.setValue("daten",value);}
+  public gettransferticket(){return this.getValue("transferticket");}
+  public settransferticket(value){this.setValue("transferticket",value);}
 }
 
 //Hilfsfunktionen für noremalisierte Buchungen

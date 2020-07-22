@@ -11,16 +11,33 @@ function doGet(e) {
     var params = e.parameter;
     if (params.clientSecret != "fnkhnei7zj4g7k") return ContentService.createTextOutput(JSON.stringify({ message: "unauthorized request" }));
 
-    let ustvaMails = searchUStVA(params.email);
-    if (ustvaMails.length === 0) return ContentService.createTextOutput(JSON.stringify({ message: "keine neue UStVA" }));
+    if (params.email) {
+        let ustvaMails = searchUStVA(params.email);
+        if (ustvaMails.length === 0) return ContentService.createTextOutput(JSON.stringify({ message: "keine neue UStVA" }));
 
-    let firstMail = ustvaMails[0];
+        let firstMail = ustvaMails[0];
 
-    markProcessed(firstMail);
-    const ustvaJSON = JSON.parse( firstMail.getMessages()[0].getPlainBody().replace(/(\r\n|\n|\r)/gm, ""));
-    Logger.log(JSON.stringify(ustvaJSON));
+        markProcessed(firstMail);
+        const ustvaJSON = JSON.parse(firstMail.getMessages()[0].getPlainBody().replace(/(\r\n|\n|\r)/gm, ""));
+        Logger.log(JSON.stringify(ustvaJSON));
 
-    return ContentService.createTextOutput(JSON.stringify(ustvaJSON));
+        const elsterTransferTableCache = new ElsterTransferTableCache("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt");
+        const elsterTransferRow = elsterTransferTableCache.createNewRow();
+        elsterTransferRow.setemail(params.email);
+        elsterTransferRow.setdaten(JSON.stringify(ustvaJSON));
+        elsterTransferRow.setdatum(new Date());
+        elsterTransferTableCache.save();
+        ustvaJSON.EtNr = elsterTransferRow.getId()
+        return ContentService.createTextOutput(JSON.stringify(ustvaJSON));
+    }
+    if (params.transferTicket){
+        const elsterTransferTableCache = new ElsterTransferTableCache("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt");
+        const elsterTransferRow = elsterTransferTableCache.getOrCreateRowById(params.EtNr);
+        elsterTransferRow.settransferticket(params.transferTicket)
+        elsterTransferTableCache.save();
+   
+    }
+
 }
 
 const PROCESSED_LABEL = "UStVA verschickt";
