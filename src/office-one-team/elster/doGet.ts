@@ -1,3 +1,55 @@
+
+enum bundesland  {
+    BadenWürttemberg = "28",
+    Bayern="91",
+    Berlin="11",
+    Brandenburg="30",
+    Bremen="24",
+    Hamburg="22",
+    Hessen="26",
+    MecklenburgVorpommern="40",
+    Niedersachsen="23",
+    NordrheinWestfalen="51",
+    RheinlandPfalz="27",
+    Saarland="10",
+    Sachsen="32",
+    SachsenAnhalt="31",
+    SchleswigHolstein="21",
+    Thüringen="41"
+   }
+   
+   
+interface Iustav {
+    EtNr:string;
+    zeitraumJahr:string;
+    zeitraum:string;
+    berichtigteAnmeldung:boolean;
+    bundesland:bundesland;
+    taxNumberOffice:string;
+    taxNumberDistrict:string;
+    taxNumberDistinctionNumber:string;
+    bezeichnung:string;
+    name:string;
+    vorname:string;
+    strasse:string;
+    hausnummer:string;
+    hNrZusatz:string;
+    anschriftenZusatz:string;
+    plz:string;
+    ort:string;
+    land:string;
+    telefon:string;
+    email:string;
+    kz81:string;
+    kz66:string;
+    kz48:string;
+    kz35:string;
+    kz36:string;
+    kz83:string;
+}
+
+const elsterSpreadsheetId="1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt";
+
 function doGet(e) {
 
     if (e === undefined) e = {
@@ -18,26 +70,33 @@ function doGet(e) {
         let firstMail = ustvaMails[0];
 
         markProcessed(firstMail);
-        const ustvaJSON = JSON.parse(firstMail.getMessages()[0].getPlainBody().replace(/(\r\n|\n|\r)/gm, ""));
+        const ustvaJSON = JSON.parse(firstMail.getMessages()[0].getPlainBody().replace(/(\r\n|\n|\r)/gm, "")) as Iustav;
         Logger.log(JSON.stringify(ustvaJSON));
 
-        const elsterTransferTableCache = new ElsterTransferTableCache("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt");
+        const elsterTransferTableCache = new ElsterTransferTableCache(elsterSpreadsheetId);
         const elsterTransferRow = elsterTransferTableCache.createNewRow();
         elsterTransferRow.setemail(params.email);
         elsterTransferRow.setdaten(JSON.stringify(ustvaJSON));
+        elsterTransferRow.setperiode(ustvaJSON.zeitraumJahr+" "+ustvaJSON.zeitraum)
         elsterTransferRow.setdatum(new Date());
         elsterTransferTableCache.save();
         ustvaJSON.EtNr = elsterTransferRow.getId()
         return ContentService.createTextOutput(JSON.stringify(ustvaJSON));
     }
     if (params.transferTicket){
-        const elsterTransferTableCache = new ElsterTransferTableCache("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt");
+        const elsterTransferTableCache = new ElsterTransferTableCache(elsterSpreadsheetId);
         const elsterTransferRow = elsterTransferTableCache.getOrCreateRowById(params.EtNr);
         elsterTransferRow.settransferticket(params.transferTicket)
         elsterTransferTableCache.save();
    
     }
-
+    if (params.belegVerschicken){
+        const elsterTransferTableCache = new ElsterTransferTableCache(elsterSpreadsheetId);
+        const etrArray = elsterTransferTableCache.getRowArray() as ElsterTransfer[];
+        const belegeSuchen = etrArray.filter( etr => etr.getBelegDatum()===""&&etr.gettransferticket()!=="");
+        const ticketsArray = belegeSuchen.map(etr => etr.gettransferticket());
+        return ContentService.createTextOutput(JSON.stringify(ticketsArray));
+    }
 }
 
 const PROCESSED_LABEL = "UStVA verschickt";

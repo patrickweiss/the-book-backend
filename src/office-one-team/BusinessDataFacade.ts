@@ -1067,6 +1067,8 @@ class ElsterTransfer extends TableRow{
   public setdaten(value){this.setValue("daten",value);}
   public gettransferticket(){return this.getValue("transferticket");}
   public settransferticket(value){this.setValue("transferticket",value);}
+  public getBelegDatum(){return this.getValue("beleg verschickt");}
+  public setBelegDatum(value){this.setValue("beleg verschickt",value);} 
 }
 
 //Hilfsfunktionen für noremalisierte Buchungen
