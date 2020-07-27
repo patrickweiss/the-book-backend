@@ -9,7 +9,7 @@ function doPost(e){
     etr.setBelegDatum(receipt.receipt);
     MailApp.sendEmail({
         to: etr.getemail(),
-        subject: "UStVA Elster Beleg",
+        subject: "UStVA Elster Beleg "+etr.getperiode(),
         htmlBody: etr.getBelegDatum()
       });
     elsterTransferTableCache.save();
