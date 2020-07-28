@@ -9,6 +9,7 @@ class DriveConnector {
   static oooVersions = {
     "0049": {
       AusgabenDatei: "2 Ausgaben erfassen - Version:0049",
+      AusgabenD: "2 Ausgaben erfassen - Version:0049",
       BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0049",
       AbschreibungenD: "2 Ausgaben erfassen - Version:0049",
       VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0049",
