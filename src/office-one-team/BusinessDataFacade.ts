@@ -52,7 +52,11 @@ class TableCache {
     if (this.rowArray === undefined) {
       this.rowArray = [];
       for (var index in this.dataArray) {
-        if (index !== "0") this.rowArray.push(this.getRowByIndex(index));
+        if (index !== "0"){
+          const currentRow = this.getRowByIndex(index)
+          //direkt nach Installation gibt es leere Zeilen, die werden nicht zurueck gegeben
+          if (currentRow.getId()!=="")this.rowArray.push(currentRow);
+        } 
       }
     }
     return this.rowArray;
