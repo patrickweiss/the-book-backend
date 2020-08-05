@@ -100,7 +100,7 @@ class TableCache {
     return tableRow;
   }
   public save() {
-    DriveConnector.saveNamedRangeData(this.rootId, this.tableName, this.loadRowCount, this.dataArray, this.backgroundArray, this.formulaArray);
+    DriveConnector.saveNamedRangeData(this.rootId, this.tableName, this.loadRowCount, this.dataArray, this.backgroundArray, this.formulaArray, oooVersion);
   }
   public deleteAll() {
     this.dataArray = [this.dataArray[0]];

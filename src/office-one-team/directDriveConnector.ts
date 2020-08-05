@@ -1,11 +1,12 @@
 function getOrCreateOfficeOneFolders() {
   var ooRootFolderIterator = DriveApp.getRootFolder().getFolders();
-  var foldersArray: object[] = [];
+  var foldersHash = {};
   while (ooRootFolderIterator.hasNext()) {
     let folder = ooRootFolderIterator.next();
     let folderName = folder.getName();
     if (folderName.toString().indexOf(".Office") !== -1) {
-      foldersArray.push({ id: folder.getId(), name: folderName });
+      const version = folderName.slice(-4);
+      foldersHash[folder.getId()]={ name: folderName.slice(0,-5), version:version };
     }
   }
   //add shared Offices
@@ -15,13 +16,14 @@ function getOrCreateOfficeOneFolders() {
     let sharedOffice = shortcutIterator.next();
     if (sharedOffice.getName().toString().indexOf(".Office") !== -1) {
       let folder = DriveApp.getFoldersByName(sharedOffice.getName()).next();
-      foldersArray.push({ id: folder.getId(), name: folder.getName() });
+      const version = folder.getName().slice(-4);
+      foldersHash[folder.getId()]={ name: folder.getName().slice(0,-5), version:version };
     }
   }
 
   var result = {
     serverFunction: ServerFunction.getOrCreateOfficeOneFolders,
-    foldersArray: foldersArray,
+    foldersArray: foldersHash,
     shortcutArray: shortcutArray
   }
   Logger.log(JSON.stringify(result));
