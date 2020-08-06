@@ -1,10 +1,12 @@
 const oooVersion = "0050";
 
+
 class DriveConnector {
 
   static driveFolders = {};
   static spreadsheets = {};
   static rangeValues = {};
+
 
   static oooVersionsFileNameIdMap = {
     "0050": {
@@ -32,37 +34,55 @@ class DriveConnector {
   }
   static oooVersionValueFileMap = {
     "0050": {
-      AusgabenDatei: "2 Ausgaben erfassen - Version:0050",
+      GutschriftenDatei: "1 Rechnung schreiben - Version:0050",
+      HilfeRechnungFertigstellen: "1 Rechnung schreiben - Version:0050",
+      HilfeRechnungSchreiben: "1 Rechnung schreiben - Version:0050",
+      KundenEMailVorlageDoc:"1 Rechnung schreiben - Version:0050",
+      Rechnungsnummer:"1 Rechnung schreiben - Version:0050",
+      Rechnungsvorlagelink:"1 Rechnung schreiben - Version:0050",
       KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
       UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
-      GutschriftenDatei: "1 Rechnung schreiben - Version:0050"
+      EinnahmenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      AusgabenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      BankkontenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
     },
     "0049": {
+      GutschriftenDatei: "1 Rechnung schreiben - Version:0049",
+      HilfeRechnungFertigstellen: "1 Rechnung schreiben - Version:0049",
+      HilfeRechnungSchreiben: "1 Rechnung schreiben - Version:0049",
+      KundenEMailVorlageDoc:"1 Rechnung schreiben - Version:0049",
+      Rechnungsnummer:"1 Rechnung schreiben - Version:0049",
+      Rechnungsvorlagelink:"1 Rechnung schreiben - Version:0049",
       AusgabenDatei: "2 Ausgaben erfassen - Version:0049",
       KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
-      UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
-      GutschriftenDatei: "1 Rechnung schreiben - Version:0049"
+      UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049"
     }
   }
   static oooVersionsRangeFileMap = {
     "0050": {
+      GutschriftenD: "1 Rechnung schreiben - Version:0050",
+      EURechnungenD: "1 Rechnung schreiben - Version:0050",
+      KundenD: "1 Rechnung schreiben - Version:0050",
+      PositionenarchivD: "1 Rechnung schreiben - Version:0050",
+      ProdukteD: "1 Rechnung schreiben - Version:0050",
+      RechnungenD: "1 Rechnung schreiben - Version:0050",
+      AbschreibungenD: "2 Ausgaben erfassen - Version:0050",
       AusgabenD: "2 Ausgaben erfassen - Version:0050",
       BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0050",
-      AbschreibungenD: "2 Ausgaben erfassen - Version:0050",
       VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0050",
       "VerträgeD": "2 Ausgaben erfassen - Version:0050",
-      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
-      UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
-      EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
-      BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
       BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0050",
       UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0050",
-      RechnungenD: "1 Rechnung schreiben - Version:0050",
-      EURechnungenD: "1 Rechnung schreiben - Version:0050",
-      GutschriftenD: "1 Rechnung schreiben - Version:0050",
+      BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
       ElsterTransferD: "5 ElsterTransfer -Version:0049"
     },
     "0049": {
+      PositionenarchivD: "1 Rechnung schreiben - Version:0049",
+      ProdukteD: "1 Rechnung schreiben - Version:0049",
+      KundenD: "1 Rechnung schreiben - Version:0049",
       AusgabenD: "2 Ausgaben erfassen - Version:0049",
       BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0049",
       AbschreibungenD: "2 Ausgaben erfassen - Version:0049",
@@ -97,8 +117,9 @@ class DriveConnector {
     return fileName;
   }
   static getMasterFileID(rangeName: string, version: string) {
-    if (DriveConnector.oooVersionsFileNameIdMap[version][DriveConnector.oooVersionsRangeFileMap[version][rangeName]] === undefined) throw new Error("File for:" + rangeName + " is not defined in DriveConnector");
-    return DriveConnector.oooVersionsFileNameIdMap[version][DriveConnector.oooVersionsRangeFileMap[version][rangeName]];
+    let masterSpreadsheetId = DriveConnector.oooVersionsFileNameIdMap[version][this.getRangeFileName(rangeName,version)]
+    if (masterSpreadsheetId === undefined) throw new Error("File for:" + rangeName + " is not defined in DriveConnector");
+    return masterSpreadsheetId;
   }
   static getValueByName(rootFolderId: string, rangeName: string, version: string) {
     let value = this.rangeValues[rootFolderId + rangeName];
@@ -184,6 +205,10 @@ class DriveConnector {
       spreadsheet.getRangeByName("EinnahmenID").setValue("");
       spreadsheet.getRangeByName("AusgabenID").setValue("");
       spreadsheet.getRangeByName("BankkontenID").setValue("");
+    }else {
+      if (this.getRangeFileName(rangeName, version) === "1 Rechnung schreiben - Version:" + oooVersion) DriveConnector.saveValueByName(spreadsheetFolder.getId(),"EinnahmenID",oooVersion,spreadsheetId);
+      if (this.getRangeFileName(rangeName, version) === "2 Ausgaben erfassen - Version:" + oooVersion) DriveConnector.saveValueByName(spreadsheetFolder.getId(),"AusgabenID",oooVersion,spreadsheetId);
+      if (this.getRangeFileName(rangeName, version) === "3 Bankbuchungen zuordnen - Version:" + oooVersion) DriveConnector.saveValueByName(spreadsheetFolder.getId(),"BankkontenID",oooVersion,spreadsheetId);
     }
     return spreadsheetId;
   }
