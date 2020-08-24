@@ -228,7 +228,7 @@ class CSVTransaction {
         this.datumString = datumString;
         this.WertstellungsDatum = new Date(parseInt(datum[2], 10), parseInt(datum[1], 10) - 1, parseInt(datum[0], 10));
         //prüfen, ob Transaktion im aktuellen Geschäftsjahr ist
-        if (geschaeftsjahr !== this.WertstellungsDatum.getFullYear()) {
+        if (geschaeftsjahr !== this.WertstellungsDatum.getFullYear()&&this.isValid) {
             this.isValid = false;
             this.isPlanned = false;
         }
