@@ -11,7 +11,6 @@ function getOrCreateOfficeOneFolders() {
   }
   //add shared Offices
   var shortcutIterator = DriveApp.getRootFolder().getFilesByType("application/vnd.google-apps.shortcut");
-  var shortcutArray: object[] = [];
   while (shortcutIterator.hasNext()) {
     let sharedOffice = shortcutIterator.next();
     if (sharedOffice.getName().toString().indexOf(".Office") !== -1) {
@@ -23,8 +22,7 @@ function getOrCreateOfficeOneFolders() {
 
   var result = {
     serverFunction: ServerFunction.getOrCreateOfficeOneFolders,
-    foldersArray: foldersHash,
-    shortcutArray: shortcutArray
+    foldersArray: foldersHash
   }
   Logger.log(JSON.stringify(result));
   return JSON.stringify(result);

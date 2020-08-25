@@ -44,10 +44,27 @@ function updateDrive(rootFolderId: string) {
   archiv.addFile(bilanzSpreadsheet);
   rootFolder.removeFile(bilanzSpreadsheet);
 
+  let oldOfficeRootFolderName = rootFolder.getName();
+  let newOfficeRootFolderName = oldOfficeRootFolderName.slice(0, -4) + oooVersion;
+  rootFolder.setName(newOfficeRootFolderName);
 
-
-  rootFolder.setName(rootFolder.getName().slice(0, -4) + oooVersion);
-
+  //if the folder is owned by eins.stein, we need to update the name of the shortcut in "MyDrive"
+  var shortcutIterator = DriveApp.getRootFolder().getFilesByType("application/vnd.google-apps.shortcut");
+  while (shortcutIterator.hasNext()) {
+    let sharedOfficeShortcut = shortcutIterator.next();
+    if (sharedOfficeShortcut.getName().toString() === oldOfficeRootFolderName) {
+      sharedOfficeShortcut.setName(newOfficeRootFolderName);
+      var foldersHash = {};
+      const version = newOfficeRootFolderName.slice(-4);
+      foldersHash[rootFolder.getId()]={ name: newOfficeRootFolderName.slice(0,-5), version:version };
+      var result = {
+        serverFunction: ServerFunction.getOrCreateOfficeOneFolders,
+        foldersArray: foldersHash
+      }
+      return JSON.stringify(result);
+    }
+  }
+  
   return getOrCreateOfficeOneFolders();
   /* 
    var result = {
