@@ -17,7 +17,8 @@ enum ServerFunction {
     ausgabenFolderScannen = "ausgabenFolderScannen",
     bankbuchungenFolderScannen = "bankbuchungenFolderScannen",
     UStVAberechnen="UStVAberechnen",
-    updateDrive="updateDrive"
+    updateDrive="updateDrive",
+    businessModelBatchUpdate = "businessModelBatchUpdate"
 }
 
 const months = {
