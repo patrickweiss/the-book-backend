@@ -26,6 +26,7 @@ function UStVAverschicken(rootFolderId: string, ustvaID: string) {
     "02 Februar": "02",
     "01 Januar": "01"
   }
+  ustvaElster["zeitraumJahr"]=BM.beginOfYear().getFullYear().toString()
   ustvaElster["zeitraum"]=zeitraumMap[ustva.getPeriodeundStatus()];
   ustvaElster["kz81"] = ustva.get81();
   ustvaElster["kz66"] = ustva.get66();
