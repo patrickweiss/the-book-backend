@@ -56,6 +56,6 @@ function parseKz83FromUStVA(belegHTML:string){
     const beginnSteuerStringBisEnde = belegHTML.slice(beginnIndex+19);
     const steuerString = beginnSteuerStringBisEnde.slice(0,beginnSteuerStringBisEnde.indexOf("&"));
 
-    return -parseFloat(steuerString.replace(",","."));
-
+    return -parseFloat(steuerString.replace(".","").replace(",","."));
 }
+
