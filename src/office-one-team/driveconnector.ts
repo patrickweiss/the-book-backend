@@ -1,4 +1,4 @@
-const oooVersion = "0050";
+const oooVersion = "0051";
 
 
 class DriveConnector {
@@ -9,6 +9,13 @@ class DriveConnector {
 
 
   static oooVersionsFileNameIdMap = {
+    "0051": {
+      "1 Rechnung schreiben - Version:0051": "1FRhYjt0GndpFq0DNI2BzfIwz5HlsJmk-rJ-GXjkxtxk",
+      "2 Ausgaben erfassen - Version:0051": "1T9TVCSgCefoXRmfCuhIIWpKdCZjlwcInN7NhmZNeDfk",
+      "3 Bankbuchungen zuordnen - Version:0051": "1Qv3Yl_4wvhl5KKp3x3yb096Pmm6eqSLs3IpGddYtJBI",
+      "4 Bilanz, Gewinn und Steuererklärungen - Version:0051": "18xEO61nnOLvKT0g625rB5dNEPZ0HzO4hmB5O6_Fw0NU",
+      "5 ElsterTransfer -Version:0049": "1-LAQ6bfwmRkZKgx6zasZi6x_WIi4DdTb7p5GD86Zsqc"
+    },
     "0050": {
       "1 Rechnung schreiben - Version:0050": "1bbRiVXLCzPdfWvgFJQofcKjBDiF5k4oKVzyBlCFg_BU",
       "2 Ausgaben erfassen - Version:0050": "16w5bq7ggLtCPcgxzAj8IU6TGfrMb1Wrrt5Ir9jApCd0",
@@ -25,14 +32,30 @@ class DriveConnector {
     }
   }
   static oooVersionValuesFileMap = {
+    "0051": {
+      Konfiguration: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+    },
     "0050": {
-      ElsterUStVA: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
+      Konfiguration: "4 Bilanz, Gewinn und Steuererklärungen - Version:0050",
     },
     "0049": {
-      ElsterUStVA: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
+      Konfiguration: "4 Bilanz, Gewinn und Steuererklärungen - Version:0049",
     }
   }
   static oooVersionValueFileMap = {
+    "0051": {
+      GutschriftenDatei: "1 Rechnung schreiben - Version:0051",
+      HilfeRechnungFertigstellen: "1 Rechnung schreiben - Version:0051",
+      HilfeRechnungSchreiben: "1 Rechnung schreiben - Version:0051",
+      KundenEMailVorlageDoc:"1 Rechnung schreiben - Version:0051",
+      Rechnungsnummer:"1 Rechnung schreiben - Version:0051",
+      Rechnungsvorlagelink:"1 Rechnung schreiben - Version:0051",
+      KontenJahr: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      UStVAPeriode: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      EinnahmenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      AusgabenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      BankkontenID: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+    },
     "0050": {
       GutschriftenDatei: "1 Rechnung schreiben - Version:0050",
       HilfeRechnungFertigstellen: "1 Rechnung schreiben - Version:0050",
@@ -59,6 +82,26 @@ class DriveConnector {
     }
   }
   static oooVersionsRangeFileMap = {
+    "0051": {
+      GutschriftenD: "1 Rechnung schreiben - Version:0051",
+      EURechnungenD: "1 Rechnung schreiben - Version:0051",
+      KundenD: "1 Rechnung schreiben - Version:0051",
+      PositionenarchivD: "1 Rechnung schreiben - Version:0051",
+      ProdukteD: "1 Rechnung schreiben - Version:0051",
+      RechnungenD: "1 Rechnung schreiben - Version:0051",
+      AbschreibungenD: "2 Ausgaben erfassen - Version:0051",
+      AusgabenD: "2 Ausgaben erfassen - Version:0051",
+      BewirtungsbelegeD: "2 Ausgaben erfassen - Version:0051",
+      VerpflegungsmehraufwendungenD: "2 Ausgaben erfassen - Version:0051",
+      "VerträgeD": "2 Ausgaben erfassen - Version:0051",
+      BankbuchungenD: "3 Bankbuchungen zuordnen - Version:0051",
+      UmbuchungenD: "3 Bankbuchungen zuordnen - Version:0051",
+      BuchungenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
+      ElsterTransferD: "5 ElsterTransfer -Version:0049"
+    },
     "0050": {
       GutschriftenD: "1 Rechnung schreiben - Version:0050",
       EURechnungenD: "1 Rechnung schreiben - Version:0050",
@@ -124,7 +167,8 @@ class DriveConnector {
   static getValueByName(rootFolderId: string, rangeName: string, version: string) {
     let value = this.rangeValues[rootFolderId + rangeName];
     if (value === undefined) {
-      value = this.getSpreadsheet(rootFolderId, rangeName, version).getRangeByName(rangeName).getValue();
+      value = this.getSpreadsheet(rootFolderId, rangeName, version).getRangeByName(rangeName).getFormula();
+      if (value==="")value = this.getSpreadsheet(rootFolderId, rangeName, version).getRangeByName(rangeName).getValue();
       this.rangeValues[rootFolderId + rangeName] = value;
     }
     return value;

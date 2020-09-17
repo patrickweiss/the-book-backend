@@ -11,7 +11,7 @@ function UStVAbuchen(rootFolderId: string) {
 
     const ustvaUmbuchung = umbuchungenTableCache.getOrCreateRowById("Um" + jahr + "UStVA" + periode);
 
-    ustvaUmbuchung.setDatum(new Date(parseInt(jahr),parseInt(periode)-1));
+    ustvaUmbuchung.setDatum(new Date(parseInt(jahr,10),parseInt(periode,10)-1));
     ustvaUmbuchung.setKonto("UStVA");
     ustvaUmbuchung.setGegenkonto("Verbindlichkeiten Umsatzsteuer");
     ustvaUmbuchung.setText(belegDaten);

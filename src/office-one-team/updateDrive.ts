@@ -7,6 +7,7 @@ function updateDrive(rootFolderId: string) {
   }
   oooPreviousVersion = nix + oooPreviousVersion;
 
+  //copy DataTable Data
   for (let rangeName of Object.keys(DriveConnector.oooVersionsRangeFileMap[oooVersion])) {
     if (rangeName !== "ElsterTransferD") {
       const dataOldVersion = DriveConnector.getNamedRangeData(rootFolderId, rangeName, oooPreviousVersion);
@@ -14,6 +15,7 @@ function updateDrive(rootFolderId: string) {
       DriveConnector.saveNamedRangeData(rootFolderId, rangeName, dataNewVersion[0].length, dataOldVersion[0], dataOldVersion[1], dataOldVersion[2], oooVersion);
     }
   }
+  //copy value Data: 
   for (let valueName of Object.keys(DriveConnector.oooVersionValueFileMap[oooVersion])) {
     if (valueName !== "EinnahmenID" && valueName !== "AusgabenID" && valueName !== "BankkontenID") {
       const dataOldVersion = DriveConnector.getValueByName(rootFolderId, valueName, oooPreviousVersion);
