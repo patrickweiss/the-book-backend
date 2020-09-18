@@ -50,7 +50,7 @@ interface Iustav {
 
 const elsterSpreadsheetId="1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt";
 
-function doGet(e) {
+function doGetElster(e) {
 
     if (e === undefined) e = {
         parameter: {

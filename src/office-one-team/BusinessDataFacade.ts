@@ -567,6 +567,18 @@ class ElsterTransferTableCache extends TableCache {
     return super.getOrCreateRowById(id) as ElsterTransfer;
   }
 }
+class LastschriftmandatTableCache extends TableCache{
+  constructor(rootId: string) {
+    super(rootId, "LastschriftmandatD");
+  }
+  public createNewRow(): Lastschriftmandat { return super.createNewRow() as Lastschriftmandat; }
+  public getRowByIndex(rowIndex: string): Lastschriftmandat {
+    return new Lastschriftmandat(this, rowIndex) as Lastschriftmandat;
+  }
+  public getOrCreateRowById(id: string): Lastschriftmandat {
+    return super.getOrCreateRowById(id) as Lastschriftmandat;
+  }
+}
 
 
 //Abstrakte Fassaden für Buchungssätze ---------------------------------------------------------------------------------
@@ -1059,7 +1071,6 @@ class NormalisierteBuchung extends FinanzAction {
   public getQuelltabelle() { return this.getValue("Quelltabelle"); }
   public setQuelltabelle(value) { this.setValue("Quelltabelle", value); }
 }
-
 class ElsterTransfer extends TableRow{
   public getdatum(){return this.getValue("datum");}
   public setdatum(value){this.setValue("datum",value);}
@@ -1073,6 +1084,34 @@ class ElsterTransfer extends TableRow{
   public settransferticket(value){this.setValue("transferticket",value);}
   public getBelegDatum(){return this.getValue("beleg verschickt");}
   public setBelegDatum(value){this.setValue("beleg verschickt",value);} 
+}
+class Lastschriftmandat extends TableRow{
+  public getZeitstempel(){return this.getValue("Zeitstempel");}
+  public setZeitstempel(value){this.setValue("Zeitstempel",value);}
+  public getEMailAdresse(){return this.getValue("E-Mail-Adresse");}
+  public setEMailAdresse(value){this.setValue("E-Mail-Adresse",value);}
+  public getKontoinhaber(){return this.getValue("Kontoinhaber");}
+  public setKontoinhaber(value){this.setValue("Kontoinhaber",value);}
+  public getStraßeundHausnummer(){return this.getValue("Straße und Hausnummer");}
+  public setStraßeundHausnummer(value){this.setValue("Straße und Hausnummer",value);}
+  public getPostleitzahl(){return this.getValue("Postleitzahl");}
+  public setPostleitzahl(value){this.setValue("Postleitzahl",value);}
+  public getOrt(){return this.getValue("Ort");}
+  public setOrt(value){this.setValue("Ort",value);}
+  public getIBAN(){return this.getValue("IBAN");}
+  public setIBAN(value){this.setValue("IBAN",value);}
+  public getBIC(){return this.getValue("BIC");}
+  public setBIC(value){this.setValue("BIC",value);}
+  public getNamederBank(){return this.getValue("Name der Bank");}
+  public setNamederBank(value){this.setValue("Name der Bank",value);}
+  public getVorname(){return this.getValue("Vorname");}
+  public setVorname(value){this.setValue("Vorname",value);}
+  public getNachname(){return this.getValue("Nachname");}
+  public setNachname(value){this.setValue("Nachname",value);}
+  public getErteilung(){return this.getValue("Erteilung");}
+  public setErteilung(value){this.setValue("Erteilung",value);}
+  public getStatus(){return this.getValue("Status");}
+  public setStatus(value){this.setValue("Status",value);}
 }
 
 //Hilfsfunktionen für noremalisierte Buchungen

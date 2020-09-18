@@ -14,6 +14,7 @@ class DriveConnector {
       "2 Ausgaben erfassen - Version:0051": "1T9TVCSgCefoXRmfCuhIIWpKdCZjlwcInN7NhmZNeDfk",
       "3 Bankbuchungen zuordnen - Version:0051": "1Qv3Yl_4wvhl5KKp3x3yb096Pmm6eqSLs3IpGddYtJBI",
       "4 Bilanz, Gewinn und Steuererklärungen - Version:0051": "18xEO61nnOLvKT0g625rB5dNEPZ0HzO4hmB5O6_Fw0NU",
+      "5 Lastschriften - Version 0051": "1rX2xHRp1-8yS1DzdggcFz1jz1AO0ezOHnBiYKQmnMpM",
       "5 ElsterTransfer -Version:0049": "1-LAQ6bfwmRkZKgx6zasZi6x_WIi4DdTb7p5GD86Zsqc"
     },
     "0050": {
@@ -100,7 +101,8 @@ class DriveConnector {
       EÜRD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
       KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
       UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
-      ElsterTransferD: "5 ElsterTransfer -Version:0049"
+      ElsterTransferD: "5 ElsterTransfer -Version:0049",
+      LastschriftmandatD : "5 SEPA - Lastschriftmandat - Version:0051"
     },
     "0050": {
       GutschriftenD: "1 Rechnung schreiben - Version:0050",
@@ -261,8 +263,8 @@ class DriveConnector {
 
 
 function generateAndMailTableRow() {
-  let namedRange = "ElsterTransferD";
-  let columnArray = DriveConnector.getNamedRangeData("1-b7eO9tjq4lZcpHDnhfcd4cUdBnRbXGt", namedRange, oooVersion)[0][0];
+  let namedRange = "LastschriftmandatD";
+  let columnArray = DriveConnector.getNamedRangeData("1KpQXF5QDi0tV5nEx_ODA7fJnpYJdfEl3", namedRange, oooVersion)[0][0];
   let getterAndSetter = "";
   columnArray.forEach(column => {
     let camelColumn = column.toString().replace(/ /g, "").replace(/-/g, "");
