@@ -102,7 +102,9 @@ class DriveConnector {
       KontenD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
       UStVAD: "4 Bilanz, Gewinn und Steuererklärungen - Version:0051",
       ElsterTransferD: "5 ElsterTransfer -Version:0049",
-      LastschriftmandatD : "5 SEPA - Lastschriftmandat - Version:0051"
+      LastschriftmandatD : "5 SEPA - Lastschriftmandat - Version:0051",
+      LastschriftproduktD : "5 SEPA - Lastschriftmandat - Version:0051",
+      LastschriftenD : "5 SEPA - Lastschriftmandat - Version:0051",
     },
     "0050": {
       GutschriftenD: "1 Rechnung schreiben - Version:0050",
@@ -263,7 +265,7 @@ class DriveConnector {
 
 
 function generateAndMailTableRow() {
-  let namedRange = "LastschriftmandatD";
+  let namedRange = "LastschriftproduktD";
   let columnArray = DriveConnector.getNamedRangeData("1KpQXF5QDi0tV5nEx_ODA7fJnpYJdfEl3", namedRange, oooVersion)[0][0];
   let getterAndSetter = "";
   columnArray.forEach(column => {

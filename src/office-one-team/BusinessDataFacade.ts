@@ -579,6 +579,30 @@ class LastschriftmandatTableCache extends TableCache{
     return super.getOrCreateRowById(id) as Lastschriftmandat;
   }
 }
+class LastschriftenTableCache extends TableCache{
+  constructor(rootId: string) {
+    super(rootId, "LastschriftenD");
+  }
+  public createNewRow(): Lastschrift { return super.createNewRow() as Lastschrift; }
+  public getRowByIndex(rowIndex: string): Lastschrift {
+    return new Lastschrift(this, rowIndex) as Lastschrift;
+  }
+  public getOrCreateRowById(id: string): Lastschrift {
+    return super.getOrCreateRowById(id) as Lastschrift;
+  }
+}
+class LastschriftproduktTableCache extends TableCache{
+  constructor(rootId: string) {
+    super(rootId, "LastschriftproduktD");
+  }
+  public createNewRow(): Lastschriftprodukt { return super.createNewRow() as Lastschriftprodukt; }
+  public getRowByIndex(rowIndex: string): Lastschriftprodukt {
+    return new Lastschriftprodukt(this, rowIndex) as Lastschriftprodukt;
+  }
+  public getOrCreateRowById(id: string): Lastschriftprodukt {
+    return super.getOrCreateRowById(id) as Lastschriftprodukt;
+  }
+}
 
 
 //Abstrakte Fassaden für Buchungssätze ---------------------------------------------------------------------------------
@@ -1088,6 +1112,8 @@ class ElsterTransfer extends TableRow{
 class Lastschriftmandat extends TableRow{
   public getZeitstempel(){return this.getValue("Zeitstempel");}
   public setZeitstempel(value){this.setValue("Zeitstempel",value);}
+  public getProdukt(){return this.getValue("Produkt");}
+  public setProdukt(value){this.setValue("Produkt",value);}
   public getEMailAdresse(){return this.getValue("E-Mail-Adresse");}
   public setEMailAdresse(value){this.setValue("E-Mail-Adresse",value);}
   public getKontoinhaber(){return this.getValue("Kontoinhaber");}
@@ -1112,6 +1138,26 @@ class Lastschriftmandat extends TableRow{
   public setErteilung(value){this.setValue("Erteilung",value);}
   public getStatus(){return this.getValue("Status");}
   public setStatus(value){this.setValue("Status",value);}
+}
+class Lastschrift extends TableRow{
+  public getLm(){return this.getValue("Lm");}
+  public setLm(value){this.setValue("Lm",value);}
+  public getBetrag(){return this.getValue("Betrag");}
+  public setBetrag(value){this.setValue("Betrag",value);}
+  public getVerwendungszweck(){return this.getValue("Verwendungszweck");}
+  public setVerwendungszweck(value){this.setValue("Verwendungszweck",value);}
+  public getDatum(){return this.getValue("Datum");}
+  public setDatum(value){this.setValue("Datum",value);}
+  public getStatus(){return this.getValue("Status");}
+  public setStatus(value){this.setValue("Status",value);}
+}
+class Lastschriftprodukt extends TableRow{
+  public getFormularname(){return this.getValue("Formularname");}
+  public setFormularname(value){this.setValue("Formularname",value);}
+  public getPreis(){return this.getValue("Preis");}
+  public setPreis(value){this.setValue("Preis",value);}
+  public getVerwendungszweck(){return this.getValue("Verwendungszweck");}
+  public setVerwendungszweck(value){this.setValue("Verwendungszweck",value);}
 }
 
 //Hilfsfunktionen für noremalisierte Buchungen

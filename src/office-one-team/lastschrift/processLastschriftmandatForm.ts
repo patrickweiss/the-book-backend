@@ -2,7 +2,8 @@ const httpEndpoint = "https://script.google.com/macros/s/AKfycbzofWRoZOPDdS8IUMV
 function processLastschriftmandatForm(event:GoogleAppsScript.Events.FormsOnSubmit,rootId){
     let lmtc = new LastschriftmandatTableCache(rootId);
     let mandat = lmtc.createNewRow();
-    mandat.setZeitstempel(event.namedValues["Zeitstempel"])
+    mandat.setZeitstempel(event.namedValues["Zeitstempel"]);
+    mandat.setProdukt(event.namedValues["Produkt"])
     mandat.setEMailAdresse(event.namedValues["E-Mail-Adresse"]);
     mandat.setKontoinhaber(event.namedValues["Kontoinhaber"]);
     mandat.setStraßeundHausnummer(event.namedValues["Straße und Hausnummer"]);
