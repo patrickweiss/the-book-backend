@@ -10,12 +10,14 @@ class DriveConnector {
 
   static oooVersionsFileNameIdMap = {
     "0051": {
-      "1 Rechnung schreiben - Version:0051": "1FRhYjt0GndpFq0DNI2BzfIwz5HlsJmk-rJ-GXjkxtxk",
+      "0 E-Mail verschicken - Version:0051": "1KYXt27vMIxS7LcmXst20HX8VIXLpeSPcQ2SIjWy3rGc",
+      "1 Rechnung schreiben - Version:0051": "1OZJsb1zfCp4ecr1XSw1L89rJ6JdrI7hQ2IdZktzanDY",
       "2 Ausgaben erfassen - Version:0051": "1T9TVCSgCefoXRmfCuhIIWpKdCZjlwcInN7NhmZNeDfk",
       "3 Bankbuchungen zuordnen - Version:0051": "1Qv3Yl_4wvhl5KKp3x3yb096Pmm6eqSLs3IpGddYtJBI",
       "4 Bilanz, Gewinn und Steuererklärungen - Version:0051": "18xEO61nnOLvKT0g625rB5dNEPZ0HzO4hmB5O6_Fw0NU",
-      "5 Lastschriften - Version 0051": "1rX2xHRp1-8yS1DzdggcFz1jz1AO0ezOHnBiYKQmnMpM",
-      "5 ElsterTransfer -Version:0049": "1-LAQ6bfwmRkZKgx6zasZi6x_WIi4DdTb7p5GD86Zsqc"
+      "5 SEPA - Lastschriftmandat - Version:0051": "1rX2xHRp1-8yS1DzdggcFz1jz1AO0ezOHnBiYKQmnMpM",
+      "(1) Installationen - Version:0050 --> Version:0051": "1BL9Akc-6IaiAOU9viZu0xmiG9PFtpG-FxVIPLYF39Mo",
+      "(2) ElsterTransfer - Version:0051": "144avpktiqIF2Exqklwv2YrkoqqTPV2GFEKzAvoKSPYE"
     },
     "0050": {
       "1 Rechnung schreiben - Version:0050": "1bbRiVXLCzPdfWvgFJQofcKjBDiF5k4oKVzyBlCFg_BU",

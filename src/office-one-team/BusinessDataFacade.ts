@@ -150,11 +150,14 @@ class TableRow {
   public getValue(columnName: string) {
     return this.tableCache.dataArray[this.index][this.tableCache.columnIndex[columnName]];
   }
-  protected setFormula(columnName: string, value: string) {
+  public setFormula(columnName: string, value: string) {
     this.tableCache.formulaArray[this.index][this.tableCache.columnIndex[columnName]] = value;
   }
-  protected getFormula(columnName: string) {
+  public getFormula(columnName: string) {
     return this.tableCache.formulaArray[this.index][this.tableCache.columnIndex[columnName]];
+  }
+  public setBackground(columnName: string, value: string) {
+    this.tableCache.backgroundArray[this.index][this.tableCache.columnIndex[columnName]] = value;
   }
   protected getDateString(date: Date) {
     var mm = date.getMonth() + 1; // getMonth() is zero-based
@@ -572,9 +575,7 @@ class LastschriftmandatTableCache extends TableCache{
     super(rootId, "LastschriftmandatD");
   }
   public createNewRow(): Lastschriftmandat { return super.createNewRow() as Lastschriftmandat; }
-  public getRowByIndex(rowIndex: string): Lastschriftmandat {
-    return new Lastschriftmandat(this, rowIndex) as Lastschriftmandat;
-  }
+  public getRowByIndex(rowIndex: string): Lastschriftmandat {return new Lastschriftmandat(this, rowIndex);  }
   public getOrCreateRowById(id: string): Lastschriftmandat {
     return super.getOrCreateRowById(id) as Lastschriftmandat;
   }
