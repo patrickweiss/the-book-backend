@@ -80,9 +80,9 @@ function updateDrive(rootFolderId: string) {
 
   }
 
-  const eMailSpreadsheet = rootFolder.getFilesByName("0 E-Mail verschicken - Version:" + oooPreviousVersion).next();
-  archiv.addFile(eMailSpreadsheet);
-  rootFolder.removeFile(eMailSpreadsheet);
+  //const eMailSpreadsheet = rootFolder.getFilesByName("0 E-Mail verschicken - Version:" + oooPreviousVersion).next();
+  //archiv.addFile(eMailSpreadsheet);
+  //rootFolder.removeFile(eMailSpreadsheet);
 
   const einnahmenSpreadsheet = rootFolder.getFilesByName("1 Rechnung schreiben - Version:" + oooPreviousVersion).next();
   archiv.addFile(einnahmenSpreadsheet);
@@ -100,9 +100,9 @@ function updateDrive(rootFolderId: string) {
   archiv.addFile(bilanzSpreadsheet);
   rootFolder.removeFile(bilanzSpreadsheet);
 
-  const lastschriftSpreadsheet = rootFolder.getFilesByName("5 SEPA - Lastschriftmandat - Version:" + oooPreviousVersion).next();
-  archiv.addFile(lastschriftSpreadsheet);
-  rootFolder.removeFile(lastschriftSpreadsheet);
+  //const lastschriftSpreadsheet = rootFolder.getFilesByName("5 SEPA - Lastschriftmandat - Version:" + oooPreviousVersion).next();
+  //archiv.addFile(lastschriftSpreadsheet);
+  //rootFolder.removeFile(lastschriftSpreadsheet);
 
   let oldOfficeRootFolderName = rootFolder.getName();
   let newOfficeRootFolderName = oldOfficeRootFolderName.slice(0, -4) + oooVersion;

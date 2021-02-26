@@ -333,7 +333,7 @@ a.umbuchungenCache = O1.loadTableCache(bankkontenID, "Umbuchungen");
     //Umbuchung hinzufügen  
     if (buchungRow.getValue("Betrag") != 0 &&
       umbId !== "mwstVorsteuerAufMwSt" &&
-      umbId !== "mwstJahresmehrwertsteuerAusVerbindlichkeiten" &&
+      umbId !== "mwstJahrAufVerbindlichkeiten" &&
       umbId !== "mwstUStVAaufVerbindlichkeiten" &&
       umbId !== "EBustvaOffenePostenKorrekturVerbindlichkeitenUmsatzsteuer12" &&
       umbId !== "EBustvaOffenePostenKorrekturUStVa12"

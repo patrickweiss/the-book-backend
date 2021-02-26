@@ -300,7 +300,7 @@ class BusinessModel {
         faelligeMehrwertsteuerVorsteuer.setText("Fällige Umsatzsteuer - VORSTEUER = Fällige Jahresmehrwertsteuer");
 
         //jahresumsatzsteuer auf Verbindlichkeiten Umsatzsteuer buchen
-        let mwstAufVerbindlichkeiten = this.getOrCreateUmbuchung("mwstJahresmehrwertsteuerAusVerbindlichkeiten");
+        let mwstAufVerbindlichkeiten = this.getOrCreateUmbuchung("mwstJahrAufVerbindlichkeiten");
         mwstAufVerbindlichkeiten.setDatum(this.endOfYear());
         mwstAufVerbindlichkeiten.setKonto("Jahresmehrwertsteuer");
         mwstAufVerbindlichkeiten.setBetrag(fealligeUmsatzsteuer - vorsteuer);
@@ -327,9 +327,9 @@ class BusinessModel {
         let simbaIstUmsatz = fealligeUmsatzsteuer / 19 * 100;
         let simbaIstUmsatzBuchung = this.getOrCreateUmbuchung("simbaIstUmsatzBuchung");
         simbaIstUmsatzBuchung.setDatum(this.endOfYear());
-        simbaIstUmsatzBuchung.setKonto("9310");
+        simbaIstUmsatzBuchung.setKonto("E9310");
         simbaIstUmsatzBuchung.setBetrag(simbaIstUmsatz);
-        simbaIstUmsatzBuchung.setGegenkonto("9313");
+        simbaIstUmsatzBuchung.setGegenkonto("E9313");
         simbaIstUmsatzBuchung.setBezahltAm(this.endOfYear());
         simbaIstUmsatzBuchung.setText("Bezahlter Umsatz im Geschaeftsjahr damit Simba Umsatzsteuerautomatik funktioniert");
     }
